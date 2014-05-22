@@ -10,4 +10,13 @@
 
 @implementation STAN_MARG_MStopTime
 
+- (void) dealloc {
+    [_departureTime release];
+    [_routeLongName release];
+    [_routeColor release];
+    [_routeTextColor release];
+    [_tripId release];
+    [super dealloc];
+}
+
 @end

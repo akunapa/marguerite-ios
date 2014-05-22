@@ -30,7 +30,17 @@
 
 @implementation STAN_MARG_LiveMapViewController
 
-@synthesize stopToZoomTo;
+- (void) dealloc {
+    [_stanfordButton release];
+    [_HUD release];
+    [_stopToZoomTo release];
+    [_buses release];
+    [_stopMarkers release];
+    [_busMarkers release];
+    [_timer release];
+    [_routePolyline release];
+    [super dealloc];
+}
 
 -(void)viewWillAppear:(BOOL)animated{
     [self.navigationController setNavigationBarHidden:YES animated:YES];
@@ -41,35 +51,35 @@
 {
     [super viewDidLoad];
 	
-    busMarkers = [[NSMutableDictionary alloc] init];
-    buses = [[STAN_MARG_RealtimeBuses alloc] initWithURL:MARGUERITE_REALTIME_XML_FEED
+    self.busMarkers = [[[NSMutableDictionary alloc] init] autorelease];
+    self.buses = [[[STAN_MARG_RealtimeBuses alloc] initWithURL:MARGUERITE_REALTIME_XML_FEED
                             andSuccessCallback:^(NSArray *busesArray) {
                                 if ([busesArray count] > 0) {
                                     for (STAN_MARG_MRealtimeBus *bus in busesArray) {
                                         [self updateMarkerWithBus:bus];
                                     }
                                     [self hideHUD];
-                                    noBusesRunning = NO;
-                                    busLoadError = NO;
+                                    _noBusesRunning = NO;
+                                    _busLoadError = NO;
                                 } else {
-                                    if (!noBusesRunning) {
+                                    if (!_noBusesRunning) {
                                         [self showHUDWithMessage:@"No buses are reporting locations." withActivity:NO];
                                     }
-                                    noBusesRunning = YES;
-                                    busLoadError = NO;
+                                    _noBusesRunning = YES;
+                                    _busLoadError = NO;
                                 }
-                                timer = [NSTimer timerWithTimeInterval:BUS_REFRESH_INTERVAL_IN_SECONDS target:self selector:@selector(refreshBuses:) userInfo:nil repeats:NO];
-                                [[NSRunLoop mainRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
+                                self.timer = [NSTimer timerWithTimeInterval:BUS_REFRESH_INTERVAL_IN_SECONDS target:self selector:@selector(refreshBuses:) userInfo:nil repeats:NO];
+                                [[NSRunLoop mainRunLoop] addTimer:_timer forMode:NSRunLoopCommonModes];
                             }
                             andFailureCallback:^(NSError *error) {
-                                timer = [NSTimer timerWithTimeInterval:BUS_REFRESH_INTERVAL_IN_SECONDS target:self selector:@selector(refreshBuses:) userInfo:nil repeats:NO];
-                                [[NSRunLoop mainRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
-                                if (!busLoadError) {
+                                self.timer = [NSTimer timerWithTimeInterval:BUS_REFRESH_INTERVAL_IN_SECONDS target:self selector:@selector(refreshBuses:) userInfo:nil repeats:NO];
+                                [[NSRunLoop mainRunLoop] addTimer:_timer forMode:NSRunLoopCommonModes];
+                                if (!_busLoadError) {
                                     [self showHUDWithMessage:@"Could not connect to bus server." withActivity:NO];
                                 }
-                                noBusesRunning = NO;
-                                busLoadError = YES;
-                            }];
+                                _noBusesRunning = NO;
+                                _busLoadError = YES;
+                            }] autorelease];
     
     [_mapView setCamera:[GMSCameraPosition cameraWithLatitude:STANFORD_LATITUDE longitude:STANFORD_LONGITUDE zoom:STANFORD_ZOOM_LEVEL]];
     _mapView.delegate = self;
@@ -83,15 +93,15 @@
     
     [self loadStops];
     
-    if (stopToZoomTo != nil) {
-        [self zoomToStop:stopToZoomTo];
-        stopToZoomTo = nil;
+    if (_stopToZoomTo != nil) {
+        [self zoomToStop:_stopToZoomTo];
+        self.stopToZoomTo = nil;
     }
     
     [self showHUDWithMessage:@"Loading buses..." withActivity:YES];
     [self refreshBuses:nil];
     
-    routePolyline = nil;
+    self.routePolyline = nil;
 }
 
 - (void) loadStops
@@ -100,9 +110,9 @@
     UIImage *stopIcon = [UIImage imageWithContentsOfFile:imageFilePath];
     
     NSArray *allStops = [STAN_MARG_MStop getAllStops];
-    stopMarkers = [[NSMutableDictionary alloc] init];
+    self.stopMarkers = [[[NSMutableDictionary alloc] init] autorelease];
     for (STAN_MARG_MStop *stop in allStops) {
-        GMSMarker *marker = [[GMSMarker alloc] init];
+        GMSMarker *marker = [[[GMSMarker alloc] init] autorelease];
         marker.position = [stop.location coordinate];
         marker.icon = stopIcon;
         marker.title = stop.stopName;
@@ -111,19 +121,19 @@
         marker.appearAnimation = kGMSMarkerAnimationPop;
         marker.userData = stop;
         marker.zIndex = 0;
-        [stopMarkers setObject:marker forKey:stop.stopId];
+        [_stopMarkers setObject:marker forKey:stop.stopId];
     }
 }
 
 - (void) refreshBuses:(NSTimer *)timer
 {
-    [buses update];
+    [_buses update];
 }
 
 - (void) showHUDWithMessage:(NSString *)message withActivity:(BOOL)activity
 {
     if (self.HUD == nil) {
-        self.HUD = [[GCDiscreetNotificationView alloc] initWithText:message showActivity:activity inPresentationMode:GCDiscreetNotificationViewPresentationModeTop inView:self.view];
+        self.HUD = [[[GCDiscreetNotificationView alloc] initWithText:message showActivity:activity inPresentationMode:GCDiscreetNotificationViewPresentationModeTop inView:self.view] autorelease];
     }
     
     // Setup HUD
@@ -142,9 +152,9 @@
 
 - (void) updateMarkerWithBus:(STAN_MARG_MRealtimeBus *)bus
 {
-    GMSMarker *marker = busMarkers[bus.vehicleId];
+    GMSMarker *marker = _busMarkers[bus.vehicleId];
     if (marker == nil) {
-        marker = [[GMSMarker alloc] init];
+        marker = [[[GMSMarker alloc] init] autorelease];
     }
     marker.position = [bus.location coordinate];
     marker.icon = [self getImageForRouteId:bus.route.routeId];
@@ -154,15 +164,15 @@
     marker.appearAnimation = kGMSMarkerAnimationPop;
     marker.userData = bus;
     marker.zIndex = 3;
-    busMarkers[bus.vehicleId] = marker;
+    _busMarkers[bus.vehicleId] = marker;
 }
 
 - (void) mapView:(GMSMapView *)mapView didTapAtCoordinate:(CLLocationCoordinate2D)coordinate
 {
     // Clear route polyline if one is being displayed
-    if (routePolyline != nil) {
-        routePolyline.map = nil;
-        routePolyline = nil;
+    if (_routePolyline != nil) {
+        _routePolyline.map = nil;
+        self.routePolyline = nil;
     }
 }
 
@@ -181,16 +191,16 @@
 - (BOOL) mapView:(GMSMapView *)mapView didTapMarker:(GMSMarker *)marker
 {
     // Clear route polyline if one is being displayed
-    if (routePolyline != nil) {
-        routePolyline.map = nil;
-        routePolyline = nil;
+    if (_routePolyline != nil) {
+        _routePolyline.map = nil;
+        self.routePolyline = nil;
     }
     
     if (marker.userData != nil && [marker.userData isKindOfClass:[STAN_MARG_MRealtimeBus class]]) {
         STAN_MARG_MRoute *route = ((STAN_MARG_MRealtimeBus *)marker.userData).route;
-        routePolyline = [[STAN_MARG_MRoutePolyline alloc] initWithRoute:route];
-        if (routePolyline != nil) {
-            routePolyline.map = _mapView;
+        self.routePolyline = [[[STAN_MARG_MRoutePolyline alloc] initWithRoute:route] autorelease];
+        if (_routePolyline != nil) {
+            _routePolyline.map = _mapView;
         }
     }
 
@@ -330,7 +340,7 @@
 }
 
 - (void)zoomToStop:(STAN_MARG_MStop *)stop {
-    GMSMarker *marker = [stopMarkers objectForKey:stop.stopId];
+    GMSMarker *marker = [_stopMarkers objectForKey:stop.stopId];
     if (marker == nil) {
         return;
     }

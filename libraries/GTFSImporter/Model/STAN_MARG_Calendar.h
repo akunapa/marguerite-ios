@@ -12,16 +12,16 @@
 
 @interface STAN_MARG_Calendar : NSObject
 
-@property (nonatomic, strong) NSString * endDate;
-@property (nonatomic, strong) NSString * friday;
-@property (nonatomic, strong) NSString * monday;
-@property (nonatomic, strong) NSString * saturday;
-@property (nonatomic, strong) NSString * serviceId;
-@property (nonatomic, strong) NSString * startDate;
-@property (nonatomic, strong) NSString * sunday;
-@property (nonatomic, strong) NSString * thursday;
-@property (nonatomic, strong) NSString * tuesday;
-@property (nonatomic, strong) NSString * wednesday;
+@property (nonatomic, retain) NSString * endDate;
+@property (nonatomic, retain) NSString * friday;
+@property (nonatomic, retain) NSString * monday;
+@property (nonatomic, retain) NSString * saturday;
+@property (nonatomic, retain) NSString * serviceId;
+@property (nonatomic, retain) NSString * startDate;
+@property (nonatomic, retain) NSString * sunday;
+@property (nonatomic, retain) NSString * thursday;
+@property (nonatomic, retain) NSString * tuesday;
+@property (nonatomic, retain) NSString * wednesday;
 
 - (id)initWithDB:(FMDatabase *)fmdb;
 - (void)addCalendar:(STAN_MARG_Calendar *)calendar;

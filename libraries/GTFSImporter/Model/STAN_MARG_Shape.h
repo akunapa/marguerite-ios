@@ -10,11 +10,11 @@
 
 @interface STAN_MARG_Shape : NSObject
 
-@property (nonatomic, strong) NSString * shapeId;
-@property (nonatomic, strong) NSString * shapePtLat;
-@property (nonatomic, strong) NSString * shapePtLon;
-@property (nonatomic, strong) NSString * shapePtSequence;
-@property (nonatomic, strong) NSString * shapeDistTraveled;
+@property (nonatomic, retain) NSString * shapeId;
+@property (nonatomic, retain) NSString * shapePtLat;
+@property (nonatomic, retain) NSString * shapePtLon;
+@property (nonatomic, retain) NSString * shapePtSequence;
+@property (nonatomic, retain) NSString * shapeDistTraveled;
 
 
 - (void)addShape:(STAN_MARG_Shape *)shape;

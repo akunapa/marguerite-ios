@@ -12,6 +12,14 @@
 
 @implementation STAN_MARG_MRealtimeBus
 
+- (void) dealloc {
+    [_route release];
+    [_vehicleId release];
+    [_location release];
+    [_dictionary release];
+    [super dealloc];
+}
+
 /*
  Create a "real-time" MBus object by looking up the route in the GTFS database. Returns nil if 
  the route does not exist.
@@ -19,12 +27,13 @@
 - (id) initWithVehicleId:(NSString *) vid andRouteId:(NSString *)route_id andLocation:(CLLocation *)loc
 {
     if (self = [super init]) {
-        self.vehicleId = vid;
-        self.route = [[STAN_MARG_MRoute alloc] initWithRouteIdString:route_id];
-        if (self.route == nil) {
+        _vehicleId = [vid retain];
+        _route = [[STAN_MARG_MRoute alloc] initWithRouteIdString:route_id];
+        if (_route == nil) {
+            [self release];
             return nil;
         }
-        self.location = loc;
+        _location = [loc retain];
     }
     return self;
 }

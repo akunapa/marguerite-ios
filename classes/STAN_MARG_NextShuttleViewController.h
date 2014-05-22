@@ -10,11 +10,13 @@
 #import "STAN_MARG_CoreLocationController.h"
 
 @interface STAN_MARG_NextShuttleViewController : UITableViewController <STAN_MARG_CoreLocationControllerDelegate, UITableViewDelegate, UITableViewDataSource, UISearchDisplayDelegate> {
-    STAN_MARG_CoreLocationController *CLController;
-    NSArray *closestStops;
-    NSArray *favoriteStops;
-    NSArray *allStops;
-    NSArray *searchResults;
+
 }
+
+@property(nonatomic, retain) STAN_MARG_CoreLocationController *CLController;
+@property(nonatomic, retain) NSArray *closestStops;
+@property(nonatomic, retain) NSArray *favoriteStops;
+@property(nonatomic, retain) NSArray *allStops;
+@property(nonatomic, retain) NSArray *searchResults;
 
 @end

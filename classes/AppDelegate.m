@@ -14,7 +14,7 @@
 
 @interface AppDelegate()
 
-@property (nonatomic, strong) STAN_MARG_AutoUpdateSplashController* updateSplashController;
+@property (nonatomic, retain) STAN_MARG_AutoUpdateSplashController* updateSplashController;
 
 @end
 

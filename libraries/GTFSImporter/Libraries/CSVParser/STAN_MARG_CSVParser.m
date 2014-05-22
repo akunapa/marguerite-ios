@@ -26,6 +26,16 @@
 
 @implementation STAN_MARG_CSVParser
 
+- (void) dealloc {
+    [_csvString release];
+    [_separator release];
+    [_scanner release];
+    [_fieldNames release];
+    [_receiver release];
+    [_endTextCharacterSet release];
+    [super dealloc];
+}
+
 //
 // initWithString:separator:hasHeader:fieldNames:
 //
@@ -45,27 +55,27 @@
 	self = [super init];
 	if (self)
 	{
-		csvString = [aCSVString retain];
-		separator = [aSeparatorString retain];
+		_csvString = [aCSVString retain];
+		_separator = [aSeparatorString retain];
 		
-		NSAssert([separator length] > 0 &&
-			[separator rangeOfString:@"\""].location == NSNotFound &&
-			[separator rangeOfCharacterFromSet:[NSCharacterSet newlineCharacterSet]].location == NSNotFound,
+		NSAssert([_separator length] > 0 &&
+			[_separator rangeOfString:@"\""].location == NSNotFound &&
+			[_separator rangeOfCharacterFromSet:[NSCharacterSet newlineCharacterSet]].location == NSNotFound,
 			@"CSV separator string must not be empty and must not contain the double quote character or newline characters.");
 		
 		NSMutableCharacterSet *endTextMutableCharacterSet =
 			[[NSCharacterSet newlineCharacterSet] mutableCopy];
 		[endTextMutableCharacterSet addCharactersInString:@"\""];
-		[endTextMutableCharacterSet addCharactersInString:[separator substringToIndex:1]];
-		endTextCharacterSet = endTextMutableCharacterSet;
+		[endTextMutableCharacterSet addCharactersInString:[_separator substringToIndex:1]];
+		_endTextCharacterSet = endTextMutableCharacterSet;
 
-		if ([separator length] == 1)
+		if ([_separator length] == 1)
 		{
-			separatorIsSingleChar = YES;
+			_separatorIsSingleChar = YES;
 		}
 
-		hasHeader = header;
-		fieldNames = [names mutableCopy];
+		_hasHeader = header;
+		_fieldNames = [names mutableCopy];
 	}
 	
 	return self;
@@ -76,14 +86,7 @@
 //
 // Releases instance memory.
 //
-- (void)dealloc
-{
-	[csvString release];
-	[separator release];
-	[fieldNames release];
-	[endTextCharacterSet release];
-	[super dealloc];
-}
+
 
 
 //
@@ -95,12 +98,11 @@
 //
 - (NSArray *)arrayOfParsedRows
 {
-	scanner = [[NSScanner alloc] initWithString:csvString];
-	[scanner setCharactersToBeSkipped:[[[NSCharacterSet alloc] init] autorelease]];
+	self.scanner = [[[NSScanner alloc] initWithString:_csvString] autorelease];
+	[_scanner setCharactersToBeSkipped:[[[NSCharacterSet alloc] init] autorelease]];
 	
 	NSArray *result = [self parseFile];
-	[scanner release];
-	scanner = nil;
+	self.scanner = nil;
 	
 	return result;
 }
@@ -118,17 +120,15 @@
 //
 - (void)parseRowsForReceiver:(id)aReceiver selector:(SEL)aSelector
 {
-	scanner = [[NSScanner alloc] initWithString:csvString];
-	[scanner setCharactersToBeSkipped:[[[NSCharacterSet alloc] init] autorelease]];
-	receiver = [aReceiver retain];
-	receiverSelector = aSelector;
+	self.scanner = [[[NSScanner alloc] initWithString:_csvString] autorelease];
+	[_scanner setCharactersToBeSkipped:[[[NSCharacterSet alloc] init] autorelease]];
+	self.receiver = aReceiver;
+	self.receiverSelector = aSelector;
 	
 	[self parseFile];
 	
-	[scanner release];
-	scanner = nil;
-	[receiver release];
-	receiver = nil;
+	self.scanner = nil;
+	self.receiver = nil;
 }
 
 //
@@ -141,22 +141,17 @@
 //
 - (NSArray *)parseFile
 {
-	if (hasHeader)
+	if (_hasHeader)
 	{
-		if (fieldNames)
-		{
-			[fieldNames release];
-		}
-		
-		fieldNames = [[self parseHeader] retain];
-		if (!fieldNames || ![self parseLineSeparator])
+		self.fieldNames = [self parseHeader];
+		if (!_fieldNames || ![self parseLineSeparator])
 		{
 			return nil;
 		}
 	}
 	
 	NSMutableArray *records = nil;
-	if (!receiver)
+	if (!_receiver)
 	{
 		records = [NSMutableArray array];
 	}
@@ -171,16 +166,15 @@
 	{
 		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 		
-		if (receiver)
+		if (_receiver)
 		{
-			[receiver performSelector:receiverSelector withObject:record];
+			[_receiver performSelector:_receiverSelector withObject:record];
 		}
 		else
 		{
 			[records addObject:record];
 		}
-		[record release];
-		
+        [record release];
 		if (![self parseLineSeparator])
 		{
 			break;
@@ -239,7 +233,7 @@
 	// Special case: return nil if the line is blank. Without this special case,
 	// it would parse as a single blank field.
 	//
-	if ([self parseLineSeparator] || [scanner isAtEnd])
+	if ([self parseLineSeparator] || [_scanner isAtEnd])
 	{
 		return nil;
 	}
@@ -250,22 +244,22 @@
 		return nil;
 	}
 
-	NSInteger fieldNamesCount = [fieldNames count];
+	NSInteger fieldNamesCount = [_fieldNames count];
 	NSInteger fieldCount = 0;
 	
 	NSMutableDictionary *record =
-		[NSMutableDictionary dictionaryWithCapacity:[fieldNames count]];
+		[NSMutableDictionary dictionaryWithCapacity:[_fieldNames count]];
 	while (field)
 	{
 		NSString *fieldName;
 		if (fieldNamesCount > fieldCount)
 		{
-			fieldName = [fieldNames objectAtIndex:fieldCount];
+			fieldName = [_fieldNames objectAtIndex:fieldCount];
 		}
 		else
 		{
 			fieldName = [NSString stringWithFormat:@"FIELD_%d", fieldCount + 1];
-			[fieldNames addObject:fieldName];
+			[_fieldNames addObject:fieldName];
 			fieldNamesCount++;
 		}
 		
@@ -320,10 +314,10 @@
 	// Special case: if the current location is immediately
 	// followed by a separator, then the field is a valid, empty string.
 	//
-	NSInteger currentLocation = [scanner scanLocation];
-	if ([self parseSeparator] || [self parseLineSeparator] || [scanner isAtEnd])
+	NSInteger currentLocation = [_scanner scanLocation];
+	if ([self parseSeparator] || [self parseLineSeparator] || [_scanner isAtEnd])
 	{
-		[scanner setScanLocation:currentLocation];
+		[_scanner setScanLocation:currentLocation];
 		return @"";
 	}
 
@@ -400,7 +394,7 @@
 //
 - (NSString *)parseTwoDoubleQuotes
 {
-	if ([scanner scanString:@"\"\"" intoString:NULL])
+	if ([_scanner scanString:@"\"\"" intoString:NULL])
 	{
 		return @"\"\"";
 	}
@@ -416,7 +410,7 @@
 //
 - (NSString *)parseDoubleQuote
 {
-	if ([scanner scanString:@"\"" intoString:NULL])
+	if ([_scanner scanString:@"\"" intoString:NULL])
 	{
 		return @"\"";
 	}
@@ -432,9 +426,9 @@
 //
 - (NSString *)parseSeparator
 {
-	if ([scanner scanString:separator intoString:NULL])
+	if ([_scanner scanString:_separator intoString:NULL])
 	{
-		return separator;
+		return _separator;
 	}
 	return nil;
 }
@@ -449,7 +443,7 @@
 - (NSString *)parseLineSeparator
 {
 	NSString *matchedNewlines = nil;
-	[scanner
+	[_scanner
 		scanCharactersFromSet:[NSCharacterSet newlineCharacterSet]
 		intoString:&matchedNewlines];
 	return matchedNewlines;
@@ -468,7 +462,7 @@
 	while (YES)
 	{
 		NSString *fragment;
-		if ([scanner scanUpToCharactersFromSet:endTextCharacterSet intoString:&fragment])
+		if ([_scanner scanUpToCharactersFromSet:_endTextCharacterSet intoString:&fragment])
 		{
 			accumulatedData = [accumulatedData stringByAppendingString:fragment];
 		}
@@ -477,7 +471,7 @@
 		// If the separator is just a single character (common case) then
 		// we know we've reached the end of parseable text
 		//
-		if (separatorIsSingleChar)
+		if (_separatorIsSingleChar)
 		{
 			break;
 		}
@@ -486,13 +480,13 @@
 		// Otherwise, we need to consider the case where the first character
 		// of the separator is matched but we don't have the full separator.
 		//
-		NSUInteger location = [scanner scanLocation];
+		NSUInteger location = [_scanner scanLocation];
 		NSString *firstCharOfSeparator;
-		if ([scanner scanString:[separator substringToIndex:1] intoString:&firstCharOfSeparator])
+		if ([_scanner scanString:[_separator substringToIndex:1] intoString:&firstCharOfSeparator])
 		{
-			if ([scanner scanString:[separator substringFromIndex:1] intoString:NULL])
+			if ([_scanner scanString:[_separator substringFromIndex:1] intoString:NULL])
 			{
-				[scanner setScanLocation:location];
+				[_scanner setScanLocation:location];
 				break;
 			}
 			

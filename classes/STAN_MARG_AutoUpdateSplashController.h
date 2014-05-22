@@ -10,9 +10,9 @@
 
 @interface STAN_MARG_AutoUpdateSplashController : UIViewController
 
-@property (nonatomic, strong) IBOutlet UILabel* mainStatusLabel;
-@property (nonatomic, strong) IBOutlet UILabel* currentActionLabel;
-@property (nonatomic, strong) IBOutlet UIActivityIndicatorView* spinner;
-@property (nonatomic, strong) IBOutlet UIProgressView* progressView;
+@property (nonatomic, retain) IBOutlet UILabel* mainStatusLabel;
+@property (nonatomic, retain) IBOutlet UILabel* currentActionLabel;
+@property (nonatomic, retain) IBOutlet UIActivityIndicatorView* spinner;
+@property (nonatomic, retain) IBOutlet UIProgressView* progressView;
 
 @end

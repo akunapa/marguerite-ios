@@ -29,7 +29,14 @@
 
 @implementation STAN_MARG_NextShuttleViewController
 
-
+- (void) dealloc {
+    [_CLController release];
+    [_closestStops release];
+    [_favoriteStops release];
+    [_allStops release];
+    [_searchResults release];
+    [super dealloc];
+}
 
 - (void)viewDidLoad
 {
@@ -37,12 +44,12 @@
 
     [[UITableViewHeaderFooterView appearance] setTintColor:[STAN_MARG_MUtil colorFromHexString:@"8C1515"]];
     
-    CLController = [[STAN_MARG_CoreLocationController alloc] init];
-	CLController.delegate = self;
+    self.CLController = [[[STAN_MARG_CoreLocationController alloc] init] autorelease];
+	_CLController.delegate = self;
 
     // Initialize the "pull down to refresh" control
-    UIRefreshControl *refresh = [[UIRefreshControl alloc] init];
-    refresh.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to Refresh"];
+    UIRefreshControl *refresh = [[[UIRefreshControl alloc] init] autorelease];
+    refresh.attributedTitle = [[[NSAttributedString alloc] initWithString:@"Pull to Refresh"] autorelease];
     [refresh addTarget:self
                 action:@selector(refreshView:)
                 forControlEvents:UIControlEventValueChanged];
@@ -53,7 +60,7 @@
 
 - (void) viewWillAppear:(BOOL)animated
 {
-    favoriteStops = [STAN_MARG_MStop getFavoriteStops];
+    self.favoriteStops = [STAN_MARG_MStop getFavoriteStops];
     [self updateLocation];
     [self.tableView reloadData];
 }
@@ -61,18 +68,18 @@
 #pragma mark - Table Refresh
 
 -(void)refreshView:(UIRefreshControl *)refresh {
-    refresh.attributedTitle = [[NSAttributedString alloc] initWithString:@"Refreshing data..."];
+    refresh.attributedTitle = [[[NSAttributedString alloc] initWithString:@"Refreshing data..."] autorelease];
 
     [self loadAndSortAllStops];
     [self.tableView reloadData];
     
     [self updateLocation];
 
-    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    NSDateFormatter *formatter = [[[NSDateFormatter alloc] init] autorelease];
     [formatter setDateFormat:@"MMM d, h:mm a"];
     NSString *lastUpdated = [NSString stringWithFormat:@"Last updated on %@",
                                     [formatter stringFromDate:[NSDate date]]];
-    refresh.attributedTitle = [[NSAttributedString alloc] initWithString:lastUpdated];
+    refresh.attributedTitle = [[[NSAttributedString alloc] initWithString:lastUpdated] autorelease];
     [refresh endRefreshing];
 }
 
@@ -89,17 +96,17 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     // If the user is searching, return the number of results
     if (tableView == self.searchDisplayController.searchResultsTableView) {
-        return [searchResults count];
+        return [_searchResults count];
     }
         
     // Number of rows is the number of stops in the region for the specified section.
     switch (section) {
         case NEARBY_STOPS_SECTION_INDEX:
-            return [closestStops count];
+            return [_closestStops count];
         case FAVORITE_STOPS_SECTION_INDEX:
-            return [favoriteStops count];
+            return [_favoriteStops count];
         case ALL_STOPS_SECTION_INDEX:
-            return [allStops count];
+            return [_allStops count];
         default:
             return 0;
     }
@@ -137,9 +144,9 @@
         cell = [self.tableView dequeueReusableCellWithIdentifier:cellIdentifier];
         
         if (cell == nil) {
-             cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellIdentifier];
+             cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellIdentifier] autorelease];
         }
-        stop = [searchResults objectAtIndex:indexPath.row];
+        stop = [_searchResults objectAtIndex:indexPath.row];
         
         cell.textLabel.text = stop.stopName;
         
@@ -151,16 +158,16 @@
             cellIdentifier = @"NearbyStopCell";
             cell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier forIndexPath:indexPath];
             
-            stop = [closestStops objectAtIndex:indexPath.row];
+            stop = [_closestStops objectAtIndex:indexPath.row];
             
             cell.textLabel.text = stop.stopName;
             
             int distanceInFeet = stop.milesAway * FEET_IN_MILES;
             NSString *distanceString;
             if (stop.milesAway < 1.0) {
-                distanceString = [[NSString alloc] initWithFormat:@"%d feet", distanceInFeet];
+                distanceString = [[[NSString alloc] initWithFormat:@"%d feet", distanceInFeet] autorelease];
             } else {
-                distanceString = [[NSString alloc] initWithFormat:@"%.2f miles", stop.milesAway];
+                distanceString = [[[NSString alloc] initWithFormat:@"%.2f miles", stop.milesAway] autorelease];
             }
             cell.detailTextLabel.text = distanceString;
             return cell;
@@ -169,7 +176,7 @@
             cellIdentifier = @"FavoriteStopCell";
             cell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier forIndexPath:indexPath];
             
-            stop = [favoriteStops objectAtIndex:indexPath.row];
+            stop = [_favoriteStops objectAtIndex:indexPath.row];
             
             cell.textLabel.text = stop.stopName;
             return cell;
@@ -178,7 +185,7 @@
             cellIdentifier = @"AllStopCell";
             cell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier forIndexPath:indexPath];
             
-            stop = [allStops objectAtIndex:indexPath.row];
+            stop = [_allStops objectAtIndex:indexPath.row];
             
             cell.textLabel.text = stop.stopName;
             
@@ -194,7 +201,7 @@
 	if ([segue.identifier isEqualToString:@"SelectedNearbyStopSegue"]) {
 		STAN_MARG_StopViewController *stopViewController = segue.destinationViewController;
         NSIndexPath *indexPath = [self.tableView indexPathForCell:(UITableViewCell*)sender];
-        stopViewController.stop = [closestStops objectAtIndex:indexPath.row];
+        stopViewController.stop = [_closestStops objectAtIndex:indexPath.row];
         stopViewController.isFavoriteStop = [stopViewController.stop isFavoriteStop];
 	} else if ([segue.identifier isEqualToString:@"SelectedFavoriteStopSegue"] || [segue.identifier isEqualToString:@"SelectedAllStopSegue"]) {
         STAN_MARG_StopViewController *stopViewController = segue.destinationViewController;
@@ -204,13 +211,13 @@
         // Make sure to access the right tableView based on whether the user is searching or not
         if ([self.searchDisplayController isActive]) {
             indexPath = [self.searchDisplayController.searchResultsTableView indexPathForSelectedRow];
-            stopViewController.stop = [searchResults objectAtIndex:indexPath.row];
+            stopViewController.stop = [_searchResults objectAtIndex:indexPath.row];
         } else {
             indexPath = [self.tableView indexPathForCell:(UITableViewCell*)sender];
             if ([segue.identifier isEqualToString:@"SelectedFavoriteStopSegue"]) {
-                stopViewController.stop = [favoriteStops objectAtIndex:indexPath.row];
+                stopViewController.stop = [_favoriteStops objectAtIndex:indexPath.row];
             } else if ([segue.identifier isEqualToString:@"SelectedAllStopSegue"]) {
-                stopViewController.stop = [allStops objectAtIndex:indexPath.row];
+                stopViewController.stop = [_allStops objectAtIndex:indexPath.row];
             }
         }
         stopViewController.isFavoriteStop = [stopViewController.stop isFavoriteStop];
@@ -236,28 +243,28 @@ shouldReloadTableForSearchString:(NSString *)searchString
                                     predicateWithFormat:@"stopName contains[cd] %@ OR stopId == %@",
                                     searchText, searchText];
     
-    searchResults = [allStops filteredArrayUsingPredicate:resultPredicate];
+    self.searchResults = [_allStops filteredArrayUsingPredicate:resultPredicate];
 }
 
 #pragma mark - GPS Location
 
 -(void)updateLocation {
-    CLController.locMgr.desiredAccuracy = kCLLocationAccuracyBest;
-    [CLController.locMgr startUpdatingLocation];
+    _CLController.locMgr.desiredAccuracy = kCLLocationAccuracyBest;
+    [_CLController.locMgr startUpdatingLocation];
 }
 
 - (void)locationUpdate:(CLLocation *)location {
-    closestStops = [STAN_MARG_MStop getClosestStops:3 withLocation:location];
+    self.closestStops = [STAN_MARG_MStop getClosestStops:3 withLocation:location];
 
-    [[CLController locMgr] stopUpdatingLocation];
+    [[_CLController locMgr] stopUpdatingLocation];
     
     [self.tableView reloadData];
 }
 
 - (void)locationError:(NSError *)error {
 	NSLog(@"locationError: %@", error);
-//    UIAlertView *errorAlert = [[UIAlertView alloc]
-//                               initWithTitle:@"Error" message:@"Failed to Get Your Location" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+//    UIAlertView *errorAlert = [[[UIAlertView alloc]
+//                               initWithTitle:@"Error" message:@"Failed to Get Your Location" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] autorelease];
 //    [errorAlert show];
 }
 
@@ -265,10 +272,10 @@ shouldReloadTableForSearchString:(NSString *)searchString
 
 - (void)loadAndSortAllStops
 {
-    allStops = [STAN_MARG_MStop getAllStops];
+    self.allStops = [STAN_MARG_MStop getAllStops];
     
     // Sort the stops alphabetically by name
-    allStops = [allStops sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
+    self.allStops = [_allStops sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
         STAN_MARG_MStop *firstStop = (STAN_MARG_MStop *) a;
         STAN_MARG_MStop *secondStop = (STAN_MARG_MStop *) b;
         

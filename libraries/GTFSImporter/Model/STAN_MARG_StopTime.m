@@ -14,19 +14,33 @@
 
 @interface STAN_MARG_StopTime ()
 {
-    FMDatabase *db;
+    ;
 }
+
+@property (nonatomic, retain) FMDatabase *db;
 
 @end
 
 @implementation STAN_MARG_StopTime
+
+- (void) dealloc {
+    [_arrivalTime release];
+    [_departureTime release];
+    [_stopSequence release];
+    [_tripId release];
+    [_stopId release];
+    [_isTimepoint release];
+    [_pickupType release];
+    [_db release];
+    [super dealloc];
+}
 
 - (id)initWithDB:(FMDatabase *)fmdb
 {
     self = [super init];
 	if (self)
 	{
-		db = fmdb;
+		_db = [fmdb retain];
 	}
 	return self;
 }
@@ -37,15 +51,15 @@
 
 - (void)addStopTime:(STAN_MARG_StopTime *)stopTime
 {
-    if (db==nil) {
-        db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
-        if (![db open]) {
+    if (_db==nil) {
+        self.db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
+        if (![_db open]) {
             NSLog(@"Could not open db.");
             return;
         }
     }
     
-    [db executeUpdate:@"INSERT into stop_times(trip_id,arrival_time,departure_time,stop_id,stop_sequence,pickup_type) values(?, ?, ?, ?, ?, ?)",
+    [_db executeUpdate:@"INSERT into stop_times(trip_id,arrival_time,departure_time,stop_id,stop_sequence,pickup_type) values(?, ?, ?, ?, ?, ?)",
      stopTime.tripId,
      stopTime.arrivalTime,
      stopTime.departureTime,
@@ -53,17 +67,17 @@
      stopTime.stopSequence,
      stopTime.pickupType];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
 }
 
 - (void)cleanupAndCreate
 {
-    if (db==nil) {
-        db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
-        if (![db open]) {
+    if (_db==nil) {
+        self.db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
+        if (![_db open]) {
             NSLog(@"Could not open db.");
             return;
         }
@@ -72,10 +86,10 @@
     //Drop table if it exists
     NSString *drop = @"DROP TABLE IF EXISTS stop_times";
     
-    [db executeUpdate:drop];
+    [_db executeUpdate:drop];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
     
@@ -85,19 +99,19 @@
     NSString *createIndex = @"CREATE INDEX stop_id_stop_times ON stop_times(stop_id)";
     NSString *createIndex1 = @"CREATE INDEX trip_id_stop_times ON stop_times(trip_id)";
     
-    [db executeUpdate:create];
-    [db executeUpdate:createIndex];
-    [db executeUpdate:createIndex1];
+    [_db executeUpdate:create];
+    [_db executeUpdate:createIndex];
+    [_db executeUpdate:createIndex1];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
 }
 
 - (void)receiveRecord:(NSDictionary *)aRecord
 {
-    STAN_MARG_StopTime *stopTimeRecord = [[STAN_MARG_StopTime alloc] init];
+    STAN_MARG_StopTime *stopTimeRecord = [[[STAN_MARG_StopTime alloc] init] autorelease];
     stopTimeRecord.tripId = aRecord[@"trip_id"];
     stopTimeRecord.departureTime = aRecord[@"departure_time"];
     stopTimeRecord.arrivalTime = aRecord[@"arrival_time"];
@@ -110,7 +124,7 @@
 
 - (NSArray *)getStopsForTripId:(NSString *)tripId
 {
-    NSMutableArray *stops = [[NSMutableArray alloc] init];
+    NSMutableArray *stops = [[[NSMutableArray alloc] init] autorelease];
     
     FMDatabase *localdb = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
     
@@ -137,14 +151,14 @@
 
 - (NSArray *)getStopTimesByTripId:(NSString *)tripId
 {
-    NSMutableArray *stop_times = [[NSMutableArray alloc] init];
+    NSMutableArray *stop_times = [[[NSMutableArray alloc] init] autorelease];
     
     NSString *query = @"SELECT stops.stop_lat, stops.stop_lon, stop_times.trip_id, stop_times.arrival_time, stop_times.stop_id, stop_times.stop_sequence, stop_times.pickup_type FROM stop_times, stops WHERE stop_times.trip_id=? AND stops.stop_id=stop_times.stop_id ORDER BY stop_times.stop_sequence";
     
-    FMResultSet *rs = [db executeQuery:query, tripId];
+    FMResultSet *rs = [_db executeQuery:query, tripId];
     while ([rs next]) {
         // just print out what we've got in a number of formats.
-        NSMutableDictionary *stop_time = [[NSMutableDictionary alloc] init];
+        NSMutableDictionary *stop_time = [[[NSMutableDictionary alloc] init] autorelease];
         
         stop_time[@"stop_lat"] = [rs objectForColumnName:@"stop_lat"];
         stop_time[@"stop_lon"] = [rs objectForColumnName:@"stop_lon"];

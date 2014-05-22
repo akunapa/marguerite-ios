@@ -28,6 +28,12 @@
 
 @implementation STAN_MARG_StopViewController
 
+- (void) dealloc {
+    [_stop release];
+    [_nextBuses release];
+    [super dealloc];
+}
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
@@ -35,11 +41,11 @@
     [self.navigationController setNavigationBarHidden:NO animated:YES];
     
 	self.title = _stop.stopName;
-    _nextBuses = [self getNextBuses];
+    self.nextBuses = [self getNextBuses];
     
     // Initialize the "pull down to refresh" control
-    UIRefreshControl *refresh = [[UIRefreshControl alloc] init];
-    refresh.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to Refresh"];
+    UIRefreshControl *refresh = [[[UIRefreshControl alloc] init] autorelease];
+    refresh.attributedTitle = [[[NSAttributedString alloc] initWithString:@"Pull to Refresh"] autorelease];
     [refresh addTarget:self
                 action:@selector(refreshView:)
       forControlEvents:UIControlEventValueChanged];
@@ -50,7 +56,7 @@
 
 - (void) addStopToFavorites
 {
-    NSMutableArray *favoriteStops = [[NSMutableArray alloc] initWithArray:[STAN_MARG_MStop getFavoriteStops]];
+    NSMutableArray *favoriteStops = [[[NSMutableArray alloc] initWithArray:[STAN_MARG_MStop getFavoriteStops]] autorelease];
     [favoriteStops addObject:self.stop];
     [STAN_MARG_MStop setFavoriteStops:favoriteStops];
     
@@ -60,8 +66,8 @@
 
 - (void) removeStopFromFavorites
 {
-    NSMutableArray *favoriteStops = [[NSMutableArray alloc] initWithArray:[STAN_MARG_MStop getFavoriteStops]];
-    NSMutableArray *newFavoriteStops = [[NSMutableArray alloc] init];
+    NSMutableArray *favoriteStops = [[[NSMutableArray alloc] initWithArray:[STAN_MARG_MStop getFavoriteStops]] autorelease];
+    NSMutableArray *newFavoriteStops = [[[NSMutableArray alloc] init] autorelease];
     for (STAN_MARG_MStop *stop in favoriteStops) {
         if ([stop.stopId isEqualToString:self.stop.stopId] == NO) {
             [newFavoriteStops addObject:stop];
@@ -84,12 +90,12 @@
     }
     
     // Create a yyyy-MM-dd date string for today's date
-    NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
+    NSDateFormatter *dateFormat = [[[NSDateFormatter alloc] init] autorelease];
     [dateFormat setDateFormat:@"yyyy-MM-dd"];
     NSString *todaysDate = [dateFormat stringFromDate:[NSDate date]];
     
     // Create a HH:mm:ss time string for the current time
-    NSDateFormatter *timeFormat = [[NSDateFormatter alloc] init];
+    NSDateFormatter *timeFormat = [[[NSDateFormatter alloc] init] autorelease];
     [timeFormat setDateFormat:@"HH:mm:ss"];
     NSString *timeString = [timeFormat stringFromDate:[NSDate date]];
     
@@ -100,9 +106,9 @@
     
     NSCalendar *calendar = [NSCalendar currentCalendar];
     
-    NSMutableArray *todaysBuses = [[NSMutableArray alloc] init];
+    NSMutableArray *todaysBuses = [[[NSMutableArray alloc] init] autorelease];
     while([departureTimesRS next]) {
-        STAN_MARG_MStopTime *bus = [[STAN_MARG_MStopTime alloc] init];
+        STAN_MARG_MStopTime *bus = [[[STAN_MARG_MStopTime alloc] init] autorelease];
         bus.routeLongName = [departureTimesRS objectForColumnName:@"route_long_name"];
         bus.tripId = [departureTimesRS objectForColumnName:@"trip_id"];
         bus.routeColor = [STAN_MARG_MUtil colorFromHexString:[departureTimesRS objectForColumnName:@"route_color"]];
@@ -111,7 +117,7 @@
         NSString *departure_time = [departureTimesRS objectForColumnName:@"departure_time"];
         
         // Some departure times have 24 as the hour, so we need to change that to 00
-        NSMutableArray *timeTokens = [[NSMutableArray alloc] initWithArray:[departure_time componentsSeparatedByString:@":"]];
+        NSMutableArray *timeTokens = [[[NSMutableArray alloc] initWithArray:[departure_time componentsSeparatedByString:@":"]] autorelease];
         if ([timeTokens[0] isEqualToString:@"24"]) {
             timeTokens[0] = @"00";
             departure_time = [timeTokens componentsJoinedByString:@":"];
@@ -137,16 +143,16 @@
 #pragma mark - Table Refresh
 
 -(void)refreshView:(UIRefreshControl *)refresh {
-    refresh.attributedTitle = [[NSAttributedString alloc] initWithString:@"Refreshing data..."];
+    refresh.attributedTitle = [[[NSAttributedString alloc] initWithString:@"Refreshing data..."] autorelease];
     
-    _nextBuses = [self getNextBuses];
+    self.nextBuses = [self getNextBuses];
     [self.tableView reloadData];
     
-    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    NSDateFormatter *formatter = [[[NSDateFormatter alloc] init] autorelease];
     [formatter setDateFormat:@"MMM d, h:mm a"];
     NSString *lastUpdated = [NSString stringWithFormat:@"Last updated on %@",
                              [formatter stringFromDate:[NSDate date]]];
-    refresh.attributedTitle = [[NSAttributedString alloc] initWithString:lastUpdated];
+    refresh.attributedTitle = [[[NSAttributedString alloc] initWithString:lastUpdated] autorelease];
     [refresh endRefreshing];
 }
 
@@ -180,7 +186,7 @@
             cellIdentifier = @"BusCell";
             cell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier forIndexPath:indexPath];
         
-            NSDateFormatter *twelveHourFormat = [[NSDateFormatter alloc] init];
+            NSDateFormatter *twelveHourFormat = [[[NSDateFormatter alloc] init] autorelease];
             [twelveHourFormat setDateFormat:@"h:mm a"];
         
             STAN_MARG_MStopTime *bus = [_nextBuses objectAtIndex:indexPath.row];

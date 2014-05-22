@@ -12,7 +12,7 @@
 
 + (NSMutableURLRequest*) tbxmlGetRequestWithURL:(NSURL*)url {
 	
-	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+	NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
 	[request setURL:url];
 	[request setHTTPMethod:@"GET"];
     
@@ -21,7 +21,7 @@
 
 + (NSMutableURLRequest*) tbxmlPostRequestWithURL:(NSURL*)url parameters:(NSDictionary*)parameters {
 	
-	NSMutableArray * params = [NSMutableArray new];
+	NSMutableArray * params = [NSMutableArray array];
 	
 	for (NSString * key in [parameters allKeys]) {
 		[params addObject:[NSString stringWithFormat:@"%@=%@", key, [parameters objectForKey:key]]];
@@ -30,7 +30,7 @@
 	NSData * postData = [[params componentsJoinedByString:@"&"] dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
 	NSString *postLength = [NSString stringWithFormat:@"%d", [postData length]];
 	
-	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+	NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
 	[request setURL:url];
 	[request setHTTPMethod:@"POST"];
 	[request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
@@ -69,7 +69,7 @@
 @implementation TBXML (TBXML_HTTP)
 
 + (id)tbxmlWithURL:(NSURL*)aURL success:(TBXMLSuccessBlock)successBlock failure:(TBXMLFailureBlock)failureBlock {
-	return [[TBXML alloc] initWithURL:aURL success:successBlock failure:failureBlock];
+	return [[[TBXML alloc] initWithURL:aURL success:successBlock failure:failureBlock] autorelease];
 }
 
 - (id)initWithURL:(NSURL*)aURL success:(TBXMLSuccessBlock)successBlock failure:(TBXMLFailureBlock)failureBlock {

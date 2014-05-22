@@ -12,6 +12,16 @@
 
 @implementation STAN_MARG_MRoute
 
+- (void) dealloc {
+    [_routeId release];
+    [_routeShortName release];
+    [_routeLongName release];
+    [_routeUrl release];
+    [_routeColor release];
+    [_routeTextColor release];
+    [super dealloc];
+}
+
 /*
  Return an MRoute object by looking up the route in the GTFS database. Returns nil if the route 
  does not exist.
@@ -25,6 +35,7 @@
     if ((self = [super init])) {
         STAN_MARG_GTFSDatabase *db = nil;
         if ((db = [STAN_MARG_GTFSDatabase open]) == nil) {
+            [self release];
             return nil;
         }
         
@@ -32,15 +43,16 @@
         
         FMResultSet *routesRS = [db executeQuery:routesQuery withArgumentsInArray:@[route_id]];
         if ([routesRS next]) {
-            self.routeId = route_id;
-            self.routeLongName = [routesRS objectForColumnName:@"route_long_name"];
-            self.routeShortName = [routesRS objectForColumnName:@"route_short_name"];
-            self.routeUrl = [[NSURL alloc] initWithString:[routesRS objectForColumnName:@"route_url"]];
+            _routeId = [route_id retain];
+            _routeLongName = [[routesRS objectForColumnName:@"route_long_name"] retain];
+            _routeShortName = [[routesRS objectForColumnName:@"route_short_name"] retain];
+            _routeUrl = [[NSURL alloc] initWithString:[routesRS objectForColumnName:@"route_url"]];
             [self setColorUsingHexString:[routesRS objectForColumnName:@"route_color"]];
             [self setTextColorUsingHexString:[routesRS objectForColumnName:@"route_text_color"]];
         } else {
             [routesRS close];
             [db close];
+            [self release];
             return nil;
         }
         

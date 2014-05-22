@@ -11,13 +11,13 @@
 
 @interface STAN_MARG_Trip : NSObject
 
-@property (nonatomic, strong) NSString *tripHeadsign;
-@property (nonatomic, strong) NSString *tripId;
-@property (nonatomic, strong) NSString *routeId;
-@property (nonatomic, strong) NSString *serviceId;
-@property (nonatomic, strong) NSString *blockId;
-@property (nonatomic, strong) NSString *shapeId;
-@property (nonatomic, strong) NSNumber *directionId;
+@property (nonatomic, retain) NSString *tripHeadsign;
+@property (nonatomic, retain) NSString *tripId;
+@property (nonatomic, retain) NSString *routeId;
+@property (nonatomic, retain) NSString *serviceId;
+@property (nonatomic, retain) NSString *blockId;
+@property (nonatomic, retain) NSString *shapeId;
+@property (nonatomic, retain) NSNumber *directionId;
 
 - (void)addTrip:(STAN_MARG_Trip *)trip;
 - (id)initWithDB:(FMDatabase *)fmdb;

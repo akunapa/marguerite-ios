@@ -10,14 +10,17 @@
 
 
 @implementation STAN_MARG_CoreLocationController
-@synthesize locMgr, delegate;
+
+- (void) dealloc {
+    [_locMgr release];
+    [super dealloc];
+}
 
 - (id)init {
 	self = [super init];
-    
 	if(self != nil) {
-		self.locMgr = [[CLLocationManager alloc] init]; // Create new instance of locMgr
-		self.locMgr.delegate = self; // Set the delegate as self.
+		_locMgr = [[CLLocationManager alloc] init]; // Create new instance of locMgr
+		_locMgr.delegate = self; // Set the delegate as self.
 	}
     
 	return self;

@@ -14,12 +14,14 @@ typedef void (^RealtimeBusesSuccessCallback)(NSArray *);
 typedef void (^RealtimeBusesFailureCallback)(NSError *);
 
 @interface STAN_MARG_RealtimeBuses : NSObject {
-    NSString *url;
-    NSMutableArray *buses;
-    NSMutableDictionary *vehicleIdsToFareboxIds;
-    RealtimeBusesSuccessCallback successCallback;
-    RealtimeBusesFailureCallback failureCallback;
+
 }
+
+@property(nonatomic, retain) NSString *url;
+@property(nonatomic, retain) NSMutableArray *buses;
+@property(nonatomic, retain) NSMutableDictionary *vehicleIdsToFareboxIds;
+@property(nonatomic, copy) RealtimeBusesSuccessCallback successCallback;
+@property(nonatomic, copy) RealtimeBusesFailureCallback failureCallback;
 
 - (id) initWithURL: (NSString *)url andSuccessCallback:(RealtimeBusesSuccessCallback)success andFailureCallback:(RealtimeBusesFailureCallback)failure;
 - (void) update;

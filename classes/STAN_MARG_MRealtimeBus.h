@@ -12,10 +12,10 @@
 
 @interface STAN_MARG_MRealtimeBus : NSObject
 
-@property (nonatomic, strong) STAN_MARG_MRoute * route;
-@property (nonatomic, strong) NSString * vehicleId;
-@property (nonatomic, strong) CLLocation *location;
-@property (nonatomic, strong) NSDictionary *dictionary;
+@property (nonatomic, retain) STAN_MARG_MRoute * route;
+@property (nonatomic, retain) NSString * vehicleId;
+@property (nonatomic, retain) CLLocation *location;
+@property (nonatomic, retain) NSDictionary *dictionary;
 
 - (id) initWithVehicleId:(NSString *) vid andRouteId:(NSString *)route_id andLocation:(CLLocation *)loc;
 

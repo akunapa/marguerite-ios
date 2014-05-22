@@ -13,34 +13,48 @@
 
 @interface STAN_MARG_Route ()
 {
-    FMDatabase *db;
 }
+
+@property (nonatomic, retain) FMDatabase *db;
 
 @end
 
 @implementation STAN_MARG_Route
+
+- (void) dealloc {
+    [_routeLongName release];
+    [_routeType release];
+    [_routeId release];
+    [_routeShortName release];
+    [_routeUrl release];
+    [_routeColor release];
+    [_routeTextColor release];
+    [_agencyId release];
+    [_db release];
+    [super dealloc];
+}
 
 - (id) initWithDB:(FMDatabase *)fmdb
 {
     self = [super init];
 	if (self)
 	{
-		db = fmdb;
+		_db = [fmdb retain];
 	}
 	return self;
 }
 
 - (void)addRoute:(STAN_MARG_Route *)route
 {
-    if (db==nil) {
-        db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
-        if (![db open]) {
+    if (_db==nil) {
+        self.db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
+        if (![_db open]) {
             NSLog(@"Could not open db.");
             return;
         }
     }
     
-    [db executeUpdate:@"INSERT into routes(route_long_name,route_type,agency_id,route_id,route_short_name,route_url,route_color,route_text_color) values(?, ?, ?, ?, ?, ?, ?, ?)",
+    [_db executeUpdate:@"INSERT into routes(route_long_name,route_type,agency_id,route_id,route_short_name,route_url,route_color,route_text_color) values(?, ?, ?, ?, ?, ?, ?, ?)",
      route.routeLongName,
      route.routeType,
      route.agencyId,
@@ -50,17 +64,17 @@
      route.routeColor,
      route.routeTextColor];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
 }
 
 - (void)cleanupAndCreate
 {
-    if (db==nil) {
-        db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
-        if (![db open]) {
+    if (_db==nil) {
+        self.db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
+        if (![_db open]) {
             NSLog(@"Could not open db.");
             return;
         }
@@ -69,27 +83,27 @@
     //Drop table if it exists
     NSString *drop = @"DROP TABLE IF EXISTS routes";
     
-    [db executeUpdate:drop];
+    [_db executeUpdate:drop];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
     
     //Create table
     NSString *create = @"CREATE TABLE 'routes' ('route_long_name' varchar(255) DEFAULT NULL,'route_type' int(2) DEFAULT NULL, 'agency_id' varchar(11) DEFAULT NULL, 'route_id' varchar(11) NOT NULL, 'route_short_name' varchar(50) DEFAULT NULL, 'route_url' varchar(255) DEFAULT NULL, 'route_color' char(6) DEFAULT 'FFFFFF', 'route_text_color' char(6) DEFAULT '000000', PRIMARY KEY ('route_id'))";
     
-    [db executeUpdate:create];
+    [_db executeUpdate:create];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
 }
 
 - (void)receiveRecord:(NSDictionary *)aRecord
 {
-    STAN_MARG_Route *routeRecord = [[STAN_MARG_Route alloc] init];
+    STAN_MARG_Route *routeRecord = [[[STAN_MARG_Route alloc] init] autorelease];
     routeRecord.routeId = aRecord[@"route_id"];
     routeRecord.routeLongName = aRecord[@"route_long_name"];
     routeRecord.routeShortName = aRecord[@"route_short_name"];
@@ -105,7 +119,7 @@
 - (NSArray *)getAllRoutes
 {
     
-    NSMutableArray *routes = [[NSMutableArray alloc] init];
+    NSMutableArray *routes = [[[NSMutableArray alloc] init] autorelease];
     
     FMDatabase *localdb = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
     
@@ -121,7 +135,7 @@
     FMResultSet *rs = [localdb executeQuery:query];
     while ([rs next]) {
         // just print out what we've got in a number of formats.
-        NSMutableDictionary *route = [[NSMutableDictionary alloc] init];
+        NSMutableDictionary *route = [[[NSMutableDictionary alloc] init] autorelease];
         route[@"route_id"] = [rs objectForColumnName:@"route_id"];
         route[@"trip_headsign"] = [rs objectForColumnName:@"trip_headsign"];
         route[@"trip_id"] = [rs objectForColumnName:@"trip_id"];

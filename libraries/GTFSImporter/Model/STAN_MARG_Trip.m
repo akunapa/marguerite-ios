@@ -13,34 +13,49 @@
 
 @interface STAN_MARG_Trip ()
 {
-    FMDatabase *db;
+
 }
+
+@property (nonatomic, retain) FMDatabase *db;
 
 @end
 
 @implementation STAN_MARG_Trip
+
+
+- (void) dealloc {
+    [_tripHeadsign release];
+    [_tripId release];
+    [_routeId release];
+    [_serviceId release];
+    [_blockId release];
+    [_shapeId release];
+    [_directionId release];
+    [_db release];
+    [super dealloc];
+}
 
 - (id) initWithDB:(FMDatabase *)fmdb
 {
     self = [super init];
 	if (self)
 	{
-		db = fmdb;
+		_db = [fmdb retain];
 	}
 	return self;
 }
 
 - (void)addTrip:(STAN_MARG_Trip *)trip
 {
-    if (db==nil) {
-        db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
-        if (![db open]) {
+    if (_db==nil) {
+        self.db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
+        if (![_db open]) {
             NSLog(@"Could not open db.");
             return;
         }
     }
     
-    [db executeUpdate:@"INSERT into trips(block_id,route_id,direction_id,trip_headsign,service_id,shape_id,trip_id) values(?, ?, ?, ?, ?, ?, ?)",
+    [_db executeUpdate:@"INSERT into trips(block_id,route_id,direction_id,trip_headsign,service_id,shape_id,trip_id) values(?, ?, ?, ?, ?, ?, ?)",
      trip.blockId,
      trip.routeId,
      trip.directionId,
@@ -49,17 +64,17 @@
      trip.shapeId,
      trip.tripId];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
 }
 
 - (void)cleanupAndCreate
 {
-    if (db==nil) {
-        db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
-        if (![db open]) {
+    if (_db==nil) {
+        self.db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
+        if (![_db open]) {
             NSLog(@"Could not open db.");
             return;
         }
@@ -68,10 +83,10 @@
     //Drop table if it exists
     NSString *drop = @"DROP TABLE IF EXISTS trips";
     
-    [db executeUpdate:drop];
+    [_db executeUpdate:drop];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
     
@@ -80,18 +95,18 @@
     
     NSString *createIndex = @"CREATE INDEX route_id_trips ON trips(route_id)";
     
-    [db executeUpdate:create];
-    [db executeUpdate:createIndex];
+    [_db executeUpdate:create];
+    [_db executeUpdate:createIndex];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
 }
 
 - (void)receiveRecord:(NSDictionary *)aRecord
 {
-    STAN_MARG_Trip *tripRecord = [[STAN_MARG_Trip alloc] init];
+    STAN_MARG_Trip *tripRecord = [[[STAN_MARG_Trip alloc] init] autorelease];
     tripRecord.blockId = aRecord[@"block_id"];
     tripRecord.routeId = aRecord[@"route_id"];
     tripRecord.directionId = aRecord[@"direction_id"];
@@ -105,28 +120,28 @@
 
 - (NSArray *)getAllTripIds
 {
-    NSMutableArray *tripIds = [[NSMutableArray alloc] init];
+    NSMutableArray *tripIds = [[[NSMutableArray alloc] init] autorelease];
     
-    if (db==nil) {
-        db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
-        if (![db open]) {
+    if (_db==nil) {
+        self.db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
+        if (![_db open]) {
             NSLog(@"Could not open db.");
-            db = nil;
+            self.db = nil;
             return nil;
         }
         
-        db.shouldCacheStatements=YES;
+        _db.shouldCacheStatements=YES;
     }
     
     NSString *query = @"SELECT trip_id from trips";
     
-    FMResultSet *rs = [db executeQuery:query];
+    FMResultSet *rs = [_db executeQuery:query];
     while ([rs next]) {
         [tripIds addObject:[rs objectForColumnName:@"trip_id"]];
     }
     // close the result set.
     [rs close];
-    [db close];
+    [_db close];
     
     //    NSLog(@"getStopTimesByTripId %d", [stop_times count]);
     return tripIds;

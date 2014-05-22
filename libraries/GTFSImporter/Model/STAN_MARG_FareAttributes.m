@@ -13,33 +13,46 @@
 
 @interface STAN_MARG_FareAttributes ()
 {
-    FMDatabase *db;
+
 }
+
+@property (nonatomic, retain) FMDatabase *db;
 
 @end
 
 @implementation STAN_MARG_FareAttributes
+
+- (void) dealloc {
+    [_currencyType release];
+    [_fareId release];
+    [_paymentMethod release];
+    [_price release];
+    [_transferDuration release];
+    [_transfers release];
+    [_db release];
+    [super dealloc];
+}
 
 - (id)initWithDB:(FMDatabase *)fmdb
 {
     self = [super init];
 	if (self)
 	{
-		db = fmdb;
+		_db = [fmdb retain];
 	}
 	return self;
 }
 
 - (void)addFareAttributesObject:(STAN_MARG_FareAttributes *)value {
-    if (db==nil) {
-        db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
-        if (![db open]) {
+    if (_db==nil) {
+        self.db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
+        if (![_db open]) {
             NSLog(@"Could not open db.");
             return;
         }
     }
     
-    [db executeUpdate:@"INSERT into fare_attributes(fare_id,price,currency_type,payment_method,transfers,transfer_duration) values(?, ?, ?, ?, ?, ?)",
+    [_db executeUpdate:@"INSERT into fare_attributes(fare_id,price,currency_type,payment_method,transfers,transfer_duration) values(?, ?, ?, ?, ?, ?)",
                         value.fareId,
                         value.price,
                         value.currencyType,
@@ -47,17 +60,17 @@
                         value.transfers,
                         value.transferDuration];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
 }
 
 - (void)cleanupAndCreate
 {
-    if (db==nil) {
-        db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
-        if (![db open]) {
+    if (_db==nil) {
+        self.db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
+        if (![_db open]) {
             NSLog(@"Could not open db.");
             return;
         }
@@ -66,27 +79,27 @@
     //Drop table if it exists
     NSString *drop = @"DROP TABLE IF EXISTS fare_attributes";
     
-    [db executeUpdate:drop];
+    [_db executeUpdate:drop];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
     
     //Create table
     NSString *create = @"CREATE TABLE 'fare_attributes' ('fare_id' varchar(11) NOT NULL, 'price' FLOAT DEFAULT 0.0, 'currency_type' varchar(255) DEFAULT NULL, 'payment_method' INT(2), 'transfers' INT(11), 'transfer_duration' INT(11), PRIMARY KEY ('fare_id'))";
     
-    [db executeUpdate:create];
+    [_db executeUpdate:create];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
 }
 
 - (void)receiveRecord:(NSDictionary *)aRecord
 {
-    STAN_MARG_FareAttributes *fareAttributesRecord = [[STAN_MARG_FareAttributes alloc] init];
+    STAN_MARG_FareAttributes *fareAttributesRecord = [[[STAN_MARG_FareAttributes alloc] init] autorelease];
     fareAttributesRecord.fareId = aRecord[@"fare_id"];
     fareAttributesRecord.price = aRecord[@"price"];
     fareAttributesRecord.currencyType = aRecord[@"currency_type"];

@@ -30,15 +30,6 @@
 
 @implementation STAN_MARG_CSVImporter
 
-- (id)init
-{
-    self = [super init];
-    if (self) {
-        // Initialization code here.
-    }
-    
-    return self;
-}
 
 - (NSString *)parseForFile:(NSString *)file
 {
@@ -70,14 +61,14 @@
 	
     NSString *csvString = [self parseForFile:@"calendar"];
     
-    STAN_MARG_Calendar *cal = [[STAN_MARG_Calendar alloc] initWithDB:db];
+    STAN_MARG_Calendar *cal = [[[STAN_MARG_Calendar alloc] initWithDB:db] autorelease];
     
 	STAN_MARG_CSVParser *parser =
-    [[STAN_MARG_CSVParser alloc]
+    [[[STAN_MARG_CSVParser alloc]
       initWithString:csvString
       separator:@","
       hasHeader:YES
-      fieldNames:nil];
+      fieldNames:nil] autorelease];
     
     [cal cleanupAndCreate];
     [db beginTransaction];
@@ -107,14 +98,14 @@
 	
     NSString *csvString = [self parseForFile:@"calendar_dates"];
     
-    STAN_MARG_CalendarDate *calDate = [[STAN_MARG_CalendarDate alloc] initWithDB:db];
+    STAN_MARG_CalendarDate *calDate = [[[STAN_MARG_CalendarDate alloc] initWithDB:db] autorelease];
     
 	STAN_MARG_CSVParser *parser =
-    [[STAN_MARG_CSVParser alloc]
+    [[[STAN_MARG_CSVParser alloc]
      initWithString:csvString
      separator:@","
      hasHeader:YES
-     fieldNames:nil];
+     fieldNames:nil] autorelease];
     
     [calDate cleanupAndCreate];
     [db beginTransaction];
@@ -146,14 +137,14 @@
 	
     NSString *csvString = [self parseForFile:@"agency"];
     
-    STAN_MARG_Agency *agency = [[STAN_MARG_Agency alloc] initWithDB:db];
+    STAN_MARG_Agency *agency = [[[STAN_MARG_Agency alloc] initWithDB:db] autorelease];
     
 	STAN_MARG_CSVParser *parser =
-    [[STAN_MARG_CSVParser alloc]
+    [[[STAN_MARG_CSVParser alloc]
       initWithString:csvString
       separator:@","
       hasHeader:YES
-      fieldNames:nil];
+      fieldNames:nil] autorelease];
     
     [agency cleanupAndCreate];
     [db beginTransaction];
@@ -184,14 +175,14 @@
 	
     NSString *csvString = [self parseForFile:@"fare_attributes"];
     
-    STAN_MARG_FareAttributes *fareAttributes = [[STAN_MARG_FareAttributes alloc] initWithDB:db];
+    STAN_MARG_FareAttributes *fareAttributes = [[[STAN_MARG_FareAttributes alloc] initWithDB:db] autorelease];
     
 	STAN_MARG_CSVParser *parser =
-    [[STAN_MARG_CSVParser alloc]
+    [[[STAN_MARG_CSVParser alloc]
       initWithString:csvString
       separator:@","
       hasHeader:YES
-      fieldNames:nil];
+      fieldNames:nil] autorelease];
     
     [fareAttributes cleanupAndCreate];
     [db beginTransaction];
@@ -221,14 +212,14 @@
 	
     NSString *csvString = [self parseForFile:@"fare_rules"];
     
-    STAN_MARG_FareRules *fareRules = [[STAN_MARG_FareRules alloc] initWithDB:db];
+    STAN_MARG_FareRules *fareRules = [[[STAN_MARG_FareRules alloc] initWithDB:db] autorelease];
     
 	STAN_MARG_CSVParser *parser =
-    [[STAN_MARG_CSVParser alloc]
+    [[[STAN_MARG_CSVParser alloc]
       initWithString:csvString
       separator:@","
       hasHeader:YES
-      fieldNames:nil];
+      fieldNames:nil] autorelease];
     
     [fareRules cleanupAndCreate];
     [db beginTransaction];
@@ -259,14 +250,14 @@
 	
     NSString *csvString = [self parseForFile:@"routes"];
     
-    STAN_MARG_Route *route = [[STAN_MARG_Route alloc] initWithDB:db];
+    STAN_MARG_Route *route = [[[STAN_MARG_Route alloc] initWithDB:db] autorelease];
     
 	STAN_MARG_CSVParser *parser =
-    [[STAN_MARG_CSVParser alloc]
+    [[[STAN_MARG_CSVParser alloc]
       initWithString:csvString
       separator:@","
       hasHeader:YES
-      fieldNames:nil];
+      fieldNames:nil] autorelease];
     
     [route cleanupAndCreate];
     [db beginTransaction];
@@ -297,14 +288,14 @@
 	
     NSString *csvString = [self parseForFile:@"shapes"];
     
-    STAN_MARG_Shape *shape = [[STAN_MARG_Shape alloc] initWithDB:db];
+    STAN_MARG_Shape *shape = [[[STAN_MARG_Shape alloc] initWithDB:db] autorelease];
     
 	STAN_MARG_CSVParser *parser =
-    [[STAN_MARG_CSVParser alloc]
+    [[[STAN_MARG_CSVParser alloc]
      initWithString:csvString
      separator:@","
      hasHeader:YES
-     fieldNames:nil];
+     fieldNames:nil] autorelease];
     
     [shape cleanupAndCreate];
     [db beginTransaction];
@@ -335,14 +326,14 @@
 	
     NSString *csvString = [self parseForFile:@"stops"];
     
-    STAN_MARG_Stop *stop = [[STAN_MARG_Stop alloc] initWithDB:db];
+    STAN_MARG_Stop *stop = [[[STAN_MARG_Stop alloc] initWithDB:db] autorelease];
     
 	STAN_MARG_CSVParser *parser =
-    [[STAN_MARG_CSVParser alloc]
+    [[[STAN_MARG_CSVParser alloc]
       initWithString:csvString
       separator:@","
       hasHeader:YES
-      fieldNames:nil];
+      fieldNames:nil] autorelease];
     
     [stop cleanupAndCreate];
     [db beginTransaction];
@@ -371,7 +362,7 @@
         return 1;
     }
     
-    STAN_MARG_Stop *stop = [[STAN_MARG_Stop alloc] initWithDB:db];
+    STAN_MARG_Stop *stop = [[[STAN_MARG_Stop alloc] initWithDB:db] autorelease];
     
 	[stop updateRoutes];
     
@@ -399,14 +390,14 @@
 	
     NSString *csvString = [self parseForFile:@"stop_times"];
     
-    STAN_MARG_StopTime *stopTime = [[STAN_MARG_StopTime alloc] initWithDB:db];
+    STAN_MARG_StopTime *stopTime = [[[STAN_MARG_StopTime alloc] initWithDB:db] autorelease];
     
 	STAN_MARG_CSVParser *parser =
-    [[STAN_MARG_CSVParser alloc]
+    [[[STAN_MARG_CSVParser alloc]
       initWithString:csvString
       separator:@","
       hasHeader:YES
-      fieldNames:nil];
+      fieldNames:nil] autorelease];
     
     [stopTime cleanupAndCreate];
     [db beginTransaction];
@@ -437,14 +428,14 @@
 	
     NSString *csvString = [self parseForFile:@"trips"];
     
-    STAN_MARG_Trip *trip = [[STAN_MARG_Trip alloc] initWithDB:db];
+    STAN_MARG_Trip *trip = [[[STAN_MARG_Trip alloc] initWithDB:db] autorelease];
     
 	STAN_MARG_CSVParser *parser =
-    [[STAN_MARG_CSVParser alloc]
+    [[[STAN_MARG_CSVParser alloc]
       initWithString:csvString
       separator:@","
       hasHeader:YES
-      fieldNames:nil];
+      fieldNames:nil] autorelease];
     
     [trip cleanupAndCreate];
     [db beginTransaction];

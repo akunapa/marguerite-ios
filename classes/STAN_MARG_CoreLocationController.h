@@ -16,11 +16,9 @@
 @end
 
 @interface STAN_MARG_CoreLocationController : NSObject <CLLocationManagerDelegate> {
-	CLLocationManager *locMgr;
-	id delegate;
 }
 
 @property (nonatomic, retain) CLLocationManager *locMgr;
-@property (nonatomic, retain) id delegate;
+@property (nonatomic, assign) id delegate;
 
 @end

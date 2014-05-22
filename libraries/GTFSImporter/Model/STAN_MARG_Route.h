@@ -11,14 +11,14 @@
 
 @interface STAN_MARG_Route : NSObject
 
-@property (nonatomic, strong) NSString * routeLongName;
-@property (nonatomic, strong) NSNumber * routeType;
-@property (nonatomic, strong) NSString * routeId;
-@property (nonatomic, strong) NSString * routeShortName;
-@property (nonatomic, strong) NSString * routeUrl;
-@property (nonatomic, strong) NSString * routeColor;
-@property (nonatomic, strong) NSString * routeTextColor;
-@property (nonatomic, strong) NSString * agencyId;
+@property (nonatomic, retain) NSString * routeLongName;
+@property (nonatomic, retain) NSNumber * routeType;
+@property (nonatomic, retain) NSString * routeId;
+@property (nonatomic, retain) NSString * routeShortName;
+@property (nonatomic, retain) NSString * routeUrl;
+@property (nonatomic, retain) NSString * routeColor;
+@property (nonatomic, retain) NSString * routeTextColor;
+@property (nonatomic, retain) NSString * agencyId;
 
 
 - (void)addRoute:(STAN_MARG_Route *)route;

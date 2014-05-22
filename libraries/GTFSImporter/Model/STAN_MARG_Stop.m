@@ -15,34 +15,49 @@
 
 @interface STAN_MARG_Stop ()
 {
-    FMDatabase *db;
+ 
 }
+
+@property (nonatomic, retain) FMDatabase *db;
 
 @end
 
 @implementation STAN_MARG_Stop
+
+- (void) dealloc {
+    [_stopLat release];
+    [_stopLon release];
+    [_stopId release];
+    [_stopName release];
+    [_stopDesc release];
+    [_locationType release];
+    [_zoneId release];
+    [_routes release];
+    [_db release];
+    [super dealloc];
+}
 
 - (id)initWithDB:(FMDatabase *)fmdb
 {
     self = [super init];
 	if (self)
 	{
-		db = fmdb;
+ 		_db = [fmdb retain];
 	}
 	return self;
 }
 
 - (void)addStop:(STAN_MARG_Stop *)stop
 {
-    if (db==nil) {
-        db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
-        if (![db open]) {
+    if (_db==nil) {
+        self.db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
+        if (![_db open]) {
             NSLog(@"Could not open db.");
             return;
         }
     }
     
-    [db executeUpdate:@"INSERT into stops(stop_lat,zone_id,stop_lon,stop_id,stop_desc,stop_name,location_type) values(?, ?, ?, ?, ?, ?, ?)",
+    [_db executeUpdate:@"INSERT into stops(stop_lat,zone_id,stop_lon,stop_id,stop_desc,stop_name,location_type) values(?, ?, ?, ?, ?, ?, ?)",
      stop.stopLat,
      stop.zoneId,
      stop.stopLon,
@@ -51,17 +66,17 @@
      stop.stopName,
      stop.locationType];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
 }
 
 - (void)cleanupAndCreate
 {
-    if (db==nil) {
-        db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
-        if (![db open]) {
+    if (_db==nil) {
+        self.db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
+        if (![_db open]) {
             NSLog(@"Could not open db.");
             return;
         }
@@ -70,10 +85,10 @@
     //Drop table if it exists
     NSString *drop = @"DROP TABLE IF EXISTS stops";
     
-    [db executeUpdate:drop];
+    [_db executeUpdate:drop];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
     
@@ -82,18 +97,18 @@
     
     NSString *createIndex = @"CREATE INDEX stop_lat_lon_stops ON stops(stop_lat, stop_lon)";
     
-    [db executeUpdate:create];
-    [db executeUpdate:createIndex];
+    [_db executeUpdate:create];
+    [_db executeUpdate:createIndex];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
 }
 
 - (void)receiveRecord:(NSDictionary *)aRecord
 {
-    STAN_MARG_Stop *stopRecord = [[STAN_MARG_Stop alloc] init];
+    STAN_MARG_Stop *stopRecord = [[[STAN_MARG_Stop alloc] init] autorelease];
     stopRecord.stopId = aRecord[@"stop_id"];
     stopRecord.stopLat = aRecord[@"stop_lat"];
     stopRecord.stopLon = aRecord[@"stop_lon"];
@@ -107,9 +122,9 @@
 
 - (void)updateStopWithRoutes:(NSArray *)route withStopId:(NSString *)stopId
 {
-    if (db==nil) {
-        db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
-        if (![db open]) {
+    if (_db==nil) {
+        self.db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
+        if (![_db open]) {
             NSLog(@"Could not open db.");
             return;
         }
@@ -117,12 +132,12 @@
     
     NSString *routeString = [route componentsJoinedByString:@","];
     
-    [db executeUpdate:@"UPDATE stops SET routes=? where stop_id=?",
+    [_db executeUpdate:@"UPDATE stops SET routes=? where stop_id=?",
      routeString,
      stopId];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
 }
@@ -130,17 +145,17 @@
 - (void)updateRoutes
 {
     @autoreleasepool {
-        NSMutableDictionary *stopWithRoutes = [[NSMutableDictionary alloc] init];
+        NSMutableDictionary *stopWithRoutes = [[[NSMutableDictionary alloc] init] autorelease];
         //First get all unique route trips
-        STAN_MARG_Route *route = [[STAN_MARG_Route alloc] init];
+        STAN_MARG_Route *route = [[[STAN_MARG_Route alloc] init] autorelease];
         NSArray *routeArray = [route getAllRoutes];
-        STAN_MARG_StopTime *stopTime = [[STAN_MARG_StopTime alloc] init];
+        STAN_MARG_StopTime *stopTime = [[[STAN_MARG_StopTime alloc] init] autorelease];
         
         for (NSDictionary *route in routeArray) {
             NSArray *stops = [stopTime getStopsForTripId:route[@"trip_id"]];
             for (NSString *stopId in stops) {
                 if (stopWithRoutes[stopId]==nil) {
-                    [stopWithRoutes setValue:[[NSMutableArray alloc] init] forKey:stopId];
+                    [stopWithRoutes setValue:[[[NSMutableArray alloc] init] autorelease] forKey:stopId];
                 }
                 if ([stopWithRoutes[stopId] containsObject:route[@"route_id"]] == NO) {
                     [stopWithRoutes[stopId] addObject:route[@"route_id"]];
@@ -161,7 +176,7 @@
 + (NSArray *)getAllStops
 {
     
-    NSMutableArray *stops = [[NSMutableArray alloc] init];
+    NSMutableArray *stops = [[[NSMutableArray alloc] init] autorelease];
     
     FMDatabase *localdb = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
     
@@ -176,7 +191,7 @@
     
     FMResultSet *rs = [localdb executeQuery:query];
     while ([rs next]) {
-        NSMutableDictionary *stop = [[NSMutableDictionary alloc] init];
+        NSMutableDictionary *stop = [[[NSMutableDictionary alloc] init] autorelease];
         stop[@"stop_id"] = [rs objectForColumnName:@"stop_id"];
         stop[@"stop_name"] = [rs objectForColumnName:@"stop_name"];
         stop[@"stop_lat"] = [rs objectForColumnName:@"stop_lat"];

@@ -71,7 +71,7 @@ static char encodingTable[64] = {
 
 
 + (NSData *) dataWithBase64EncodedString:(NSString *) string {
-    NSData *result = [[NSData alloc] initWithBase64EncodedString:string];
+    NSData *result = [[[NSData alloc] initWithBase64EncodedString:string] autorelease];
     return result;
 }
 

@@ -12,14 +12,14 @@
 
 @interface STAN_MARG_Stop : NSObject
 
-@property (nonatomic, strong) NSNumber * stopLat;
-@property (nonatomic, strong) NSNumber * stopLon;
-@property (nonatomic, strong) NSString * stopId;
-@property (nonatomic, strong) NSString * stopName;
-@property (nonatomic, strong) NSString * stopDesc;
-@property (nonatomic, strong) NSNumber * locationType;
-@property (nonatomic, strong) NSString * zoneId;
-@property (nonatomic, strong) NSArray  * routes;
+@property (nonatomic, retain) NSNumber * stopLat;
+@property (nonatomic, retain) NSNumber * stopLon;
+@property (nonatomic, retain) NSString * stopId;
+@property (nonatomic, retain) NSString * stopName;
+@property (nonatomic, retain) NSString * stopDesc;
+@property (nonatomic, retain) NSNumber * locationType;
+@property (nonatomic, retain) NSString * zoneId;
+@property (nonatomic, retain) NSArray  * routes;
 
 - (void)addStop:(STAN_MARG_Stop *)stop;
 - (id)initWithDB:(FMDatabase *)fmdb;

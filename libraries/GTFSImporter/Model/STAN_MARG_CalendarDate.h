@@ -10,9 +10,9 @@
 
 @interface STAN_MARG_CalendarDate : NSObject
 
-@property (nonatomic, strong) NSString * serviceId;
-@property (nonatomic, strong) NSString * date;
-@property (nonatomic, strong) NSString * exceptionType;
+@property (nonatomic, retain) NSString * serviceId;
+@property (nonatomic, retain) NSString * date;
+@property (nonatomic, retain) NSString * exceptionType;
 
 - (id)initWithDB:(FMDatabase *)fmdb;
 - (void)addCalendarDate:(STAN_MARG_CalendarDate *)calendarDate;

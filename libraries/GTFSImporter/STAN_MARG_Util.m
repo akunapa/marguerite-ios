@@ -75,7 +75,7 @@
     // setting units we would like to use in future
     unsigned units = NSYearCalendarUnit | NSMonthCalendarUnit |  NSDayCalendarUnit | NSWeekdayCalendarUnit;
     // creating NSCalendar object
-    NSCalendar *calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
+    NSCalendar *calendar = [[[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar] autorelease];
     // extracting components from date
     NSDateComponents *components = [calendar components:units fromDate:date];
     
@@ -111,7 +111,7 @@
 //Converts NSDate to specified format, Default yyyy-MM-dd if nil is passed for format
 + (NSString *) getDateStringFromDate:(NSDate *)date withFormat:(NSString *)format
 {
-    NSDateFormatter *sDateFormatter = [[NSDateFormatter alloc] init];
+    NSDateFormatter *sDateFormatter = [[[NSDateFormatter alloc] init] autorelease];
     if (format==nil)
         [sDateFormatter setDateFormat:@"yyyy-MM-dd"];
     else
@@ -124,7 +124,7 @@
 //Converts NSDate to specified format, Default hh:mm:ss if nil is passed for format
 + (NSString *) getTimeStringFromDate:(NSDate *)date withFormat:(NSString *)format
 {
-    NSDateFormatter *sDateFormatter = [[NSDateFormatter alloc] init];
+    NSDateFormatter *sDateFormatter = [[[NSDateFormatter alloc] init] autorelease];
     if (format==nil)
         [sDateFormatter setDateFormat:@"HH:mm:ss"];
     else

@@ -10,6 +10,6 @@
 
 @interface STAN_MARG_AboutViewController : UITableViewController <UITableViewDelegate, UITableViewDataSource>
 
-@property (strong, nonatomic) UITextField *feedbackField;
+@property (retain, nonatomic) UITextField *feedbackField;
 
 @end

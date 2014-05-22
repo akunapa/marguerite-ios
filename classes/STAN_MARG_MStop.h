@@ -11,10 +11,10 @@
 
 @interface STAN_MARG_MStop : NSObject <NSCoding>
 
-@property (nonatomic, strong) CLLocation * location;
-@property (nonatomic, strong) NSString * stopId;
-@property (nonatomic, strong) NSString * stopName;
-@property (nonatomic, strong) NSString * routesString;
+@property (nonatomic, retain) CLLocation * location;
+@property (nonatomic, retain) NSString * stopId;
+@property (nonatomic, retain) NSString * stopName;
+@property (nonatomic, retain) NSString * routesString;
 @property double milesAway;
 
 - (id) initWithStopId:(NSString *)stop_id;

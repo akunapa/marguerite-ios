@@ -14,6 +14,15 @@
 
 @implementation STAN_MARG_RealtimeBuses
 
+- (void) dealloc {
+    [_url release];
+    [_buses release];
+    [_vehicleIdsToFareboxIds release];
+    [_successCallback release];
+    [_failureCallback release];
+    [super dealloc];
+}
+
 /*
  Return a RealtimeBuses object given the URL of the bus XML feed and callback methods for success 
  and failure.
@@ -21,9 +30,9 @@
 - (id) initWithURL: (NSString *)theUrl andSuccessCallback:(RealtimeBusesSuccessCallback)success andFailureCallback:(RealtimeBusesFailureCallback)failure
 {
     if (self = [super init]) {
-        url = theUrl;
-        successCallback = success;
-        failureCallback = failure;
+        _url = [theUrl retain];
+        _successCallback = [success copy];
+        _failureCallback = [failure copy];
     }
     return self;
 }
@@ -34,18 +43,18 @@
  */
 - (void) update
 {
-    [TBXML tbxmlWithURL:[NSURL URLWithString:url]
+    [TBXML tbxmlWithURL:[NSURL URLWithString:_url]
                 success:^(TBXML *tbxml) {
-                    buses = nil;
-                    if ((buses = [self traverseVehicles:tbxml.rootXMLElement])) {
-                        [self updateFareboxIds:[self extractVehicleIdsFromBuses:buses]];
+                    self.buses = nil;
+                    if ((self.buses = [self traverseVehicles:tbxml.rootXMLElement])) {
+                        [self updateFareboxIds:[self extractVehicleIdsFromBuses:_buses]];
                     } else {
-                        failureCallback([self errorWithString:@"Real-time feed invalid"]);
+                        _failureCallback([self errorWithString:@"Real-time feed invalid"]);
                     }
                 }
                 failure:^(TBXML *tbxml, NSError *error) {
                     NSLog(@"RealtimeBuses updateBuses error: %@", [error localizedDescription]);
-                    failureCallback(error);
+                    _failureCallback(error);
                 }
      ];
 }
@@ -55,25 +64,25 @@
  */
 - (void) updateBuses
 {
-    NSMutableArray *updatedBuses = [[NSMutableArray alloc] init];
-    for (STAN_MARG_MRealtimeBus *bus in buses) {
+    NSMutableArray *updatedBuses = [[[NSMutableArray alloc] init] autorelease];
+    for (STAN_MARG_MRealtimeBus *bus in _buses) {
         if (bus.vehicleId == nil) {
             continue;
         }
         
-        NSString *fareboxId = vehicleIdsToFareboxIds[bus.vehicleId];
+        NSString *fareboxId = _vehicleIdsToFareboxIds[bus.vehicleId];
         if (fareboxId == nil || [fareboxId isEqualToString:@"-1"]) {
             continue;
         }
         
         NSString *route_id = [self getRouteIdWithFareboxId:fareboxId];
-        bus.route = [[STAN_MARG_MRoute alloc] initWithRouteIdString:route_id];
+        bus.route = [[[STAN_MARG_MRoute alloc] initWithRouteIdString:route_id] autorelease];
         if (bus.route != nil) {
             [updatedBuses addObject:bus];
         }
     }
 
-    successCallback(updatedBuses);
+    _successCallback(updatedBuses);
 }
 
 /*
@@ -82,7 +91,7 @@
  */
 -(NSString *) extractVehicleIdsFromBuses:(NSArray *)busArray
 {
-    NSMutableArray *vehicleNames = [[NSMutableArray alloc] init];
+    NSMutableArray *vehicleNames = [[[NSMutableArray alloc] init] autorelease];
     
     for (STAN_MARG_MRealtimeBus* bus in busArray) {
         NSString *vehicleId = bus.vehicleId;
@@ -101,7 +110,7 @@
  */
 - (void) updateFareboxIds:(NSString *)vehicleNames
 {
-    __weak ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:MARGUERITE_VEHICLE_IDS_URL]];
+    __block ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:MARGUERITE_VEHICLE_IDS_URL]];
     [request setPostValue:vehicleNames forKey:@"name"];
     [request setCompletionBlock:^{
         // Use when fetching text data
@@ -111,16 +120,16 @@
         
         NSArray *mappings = jsonData[@"DATA"];
         if (jsonData == nil) {
-            failureCallback([self errorWithString:@"Farebox ID JSON parsing failed."]);
+            _failureCallback([self errorWithString:@"Farebox ID JSON parsing failed."]);
         }
         
-        vehicleIdsToFareboxIds = [[NSMutableDictionary alloc] init];
+        self.vehicleIdsToFareboxIds = [[[NSMutableDictionary alloc] init] autorelease];
         
         for (NSArray* mapping in mappings) {
             if ([mapping count] == 2) {
                 NSNumber *vehicleId = mapping[0];
                 NSNumber *fareboxId = mapping[1];
-                vehicleIdsToFareboxIds[[NSString stringWithFormat:@"%d", [vehicleId integerValue]]] = [fareboxId stringValue];
+                _vehicleIdsToFareboxIds[[NSString stringWithFormat:@"%d", [vehicleId integerValue]]] = [fareboxId stringValue];
             }
         }
         
@@ -128,7 +137,7 @@
     }];
     [request setFailedBlock:^{
         NSError *error = [request error];
-        failureCallback(error);
+        _failureCallback(error);
     }];
     [request startAsynchronous];
 }
@@ -145,7 +154,7 @@
     
     element = element->firstChild;
     
-    NSMutableArray *busArray = [[NSMutableArray alloc] init];
+    NSMutableArray *busArray = [[[NSMutableArray alloc] init] autorelease];
     do {
         if ([[TBXML elementName:element] isEqualToString:@"vehicle"]) {
             STAN_MARG_MRealtimeBus *bus = [self traverseVehicleElement:element];
@@ -164,7 +173,7 @@
  */
 - (STAN_MARG_MRealtimeBus *) traverseVehicleElement:(TBXMLElement *)element
 {
-    NSMutableDictionary *busDictionary = [[NSMutableDictionary alloc] init];
+    NSMutableDictionary *busDictionary = [[[NSMutableDictionary alloc] init] autorelease];
     
     // Obtain first attribute from vehicle element
     TBXMLAttribute * attribute = element->firstAttribute;
@@ -200,9 +209,9 @@
         return nil;
     }
     
-    CLLocation *location = [[CLLocation alloc] initWithLatitude:[latitude doubleValue] longitude:[longitude doubleValue]];
+    CLLocation *location = [[[CLLocation alloc] initWithLatitude:[latitude doubleValue] longitude:[longitude doubleValue]] autorelease];
     
-    STAN_MARG_MRealtimeBus *bus = [[STAN_MARG_MRealtimeBus alloc] init];
+    STAN_MARG_MRealtimeBus *bus = [[[STAN_MARG_MRealtimeBus alloc] init] autorelease];
     bus.vehicleId = vid;
     bus.location = location;
     bus.dictionary = busDictionary;

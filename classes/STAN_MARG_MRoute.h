@@ -10,12 +10,12 @@
 
 @interface STAN_MARG_MRoute : NSObject
 
-@property (nonatomic, strong) NSString * routeId;
-@property (nonatomic, strong) NSString * routeShortName;
-@property (nonatomic, strong) NSString * routeLongName;
-@property (nonatomic, strong) NSURL * routeUrl;
-@property (nonatomic, strong) UIColor * routeColor;
-@property (nonatomic, strong) UIColor * routeTextColor;
+@property (nonatomic, retain) NSString * routeId;
+@property (nonatomic, retain) NSString * routeShortName;
+@property (nonatomic, retain) NSString * routeLongName;
+@property (nonatomic, retain) NSURL * routeUrl;
+@property (nonatomic, retain) UIColor * routeColor;
+@property (nonatomic, retain) UIColor * routeTextColor;
 
 - (id) initWithRouteIdString:(NSString *) route_id;
 - (void) setColorUsingHexString:(NSString *) hexString;

@@ -63,7 +63,7 @@ BOOL static __isNewAutoUpdateTempDatabaseBuildInProgress;
     
     __isNewAutoUpdateTempDatabaseBuildInProgress = YES;
     
-    STAN_MARG_CSVImporter *importer = [[STAN_MARG_CSVImporter alloc] init];
+    STAN_MARG_CSVImporter *importer = [[[STAN_MARG_CSVImporter alloc] init] autorelease];
     
     NSLog(@"Importing Agency...");
     [creationProgressDelegate updatingStepNumber:1 outOfTotalSteps:12 currentStepLabel:@"Importing Agency..."];
@@ -130,16 +130,17 @@ BOOL static __isNewAutoUpdateTempDatabaseBuildInProgress;
  */
 + (BOOL) deleteAutoUpdateBuild {
     NSError* error;
+    BOOL deleteSuccess = NO;
     if ([self existsAutoUpdateBuild]) {
         @try {
-            [[NSFileManager defaultManager] removeItemAtPath:[self getAutoUpdatedDatabasePath] error:&error];
+            deleteSuccess = [[NSFileManager defaultManager] removeItemAtPath:[self getAutoUpdatedDatabasePath] error:&error];
         }
         @catch (NSException *exception) {
             NSLog(@"delete - Exception: %@", [exception reason]);
             return NO;
         }
         @finally {
-            if (error) {
+            if (!deleteSuccess) {
                 NSString *messageString = [error localizedDescription];
                 messageString = [NSString stringWithFormat:@"%@", messageString];
                 NSLog(@"delete - Error: %@", messageString);
@@ -152,19 +153,18 @@ BOOL static __isNewAutoUpdateTempDatabaseBuildInProgress;
 
 + (BOOL) deleteNewAutoUpdateBuild {
     NSError* error;
+    BOOL deleteSuccess = NO;
     if ([self existsNewAutoUpdateBuild]) {
         @try {
-            [[NSFileManager defaultManager] removeItemAtPath:[self getNewAutoUpdateDatabaseBuildPath] error:&error];
+            deleteSuccess = [[NSFileManager defaultManager] removeItemAtPath:[self getNewAutoUpdateDatabaseBuildPath] error:&error];
         }
         @catch (NSException *exception) {
             NSLog(@"delete - Exception: %@", [exception reason]);
             return NO;
         }
         @finally {
-            if (error) {
-                NSString *messageString = [error localizedDescription];
-                messageString = [NSString stringWithFormat:@"%@", messageString];
-                NSLog(@"delete - Error: %@", messageString);
+            if (!deleteSuccess) {
+                NSLog(@"delete - Error: %@", [error localizedDescription]);
                 return NO;
             }
         }
@@ -200,14 +200,14 @@ BOOL static __isNewAutoUpdateTempDatabaseBuildInProgress;
     }
     
     [self deleteAutoUpdateBuild];
-    
+    BOOL copySuccess = NO;
     @try {
-        [[NSFileManager defaultManager] copyItemAtPath:src toPath:dest error:&error];
+        copySuccess = [[NSFileManager defaultManager] copyItemAtPath:src toPath:dest error:&error];
     }
     @catch (NSException *exception) {
         NSLog(@"copyDatabaseToCacheIfNeeded - Exception: %@", [exception reason]);
     }
-    if (error) {
+    if (!copySuccess) {
         NSString *messageString = [error localizedDescription];
         messageString = [NSString stringWithFormat:@"%@", messageString];
         NSLog(@"copyDatabaseToCacheIfNeeded - Error: %@", messageString);

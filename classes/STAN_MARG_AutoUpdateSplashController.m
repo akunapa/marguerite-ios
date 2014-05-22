@@ -16,8 +16,8 @@
 
 @interface STAN_MARG_AutoUpdateSplashController ()<STAN_MARG_GTFSDatabaseCreationProgressDelegate, STAN_MARG_DataDownloadDone>
 
-@property (strong, nonatomic) STAN_MARG_GTFSUnarchiver* gtfsUpdater;
-@property (strong, nonatomic) STAN_MARG_DataDownloader* dataDownloader;
+@property (retain, nonatomic) STAN_MARG_GTFSUnarchiver* gtfsUpdater;
+@property (retain, nonatomic) STAN_MARG_DataDownloader* dataDownloader;
 
 @end
 
@@ -26,11 +26,21 @@
 @synthesize gtfsUpdater;
 @synthesize dataDownloader;
 
+- (void) dealloc {
+    [gtfsUpdater release];
+    [dataDownloader release];
+    [_mainStatusLabel release];
+    [_currentActionLabel release];
+    [_spinner release];
+    [_progressView release];
+    [super dealloc];
+}
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
     // Do any additional setup after loading the view from its nib.
-    self.gtfsUpdater = [[STAN_MARG_GTFSUnarchiver alloc] init];
+    self.gtfsUpdater = [[[STAN_MARG_GTFSUnarchiver alloc] init] autorelease];
 }
 
 - (void) viewWillAppear:(BOOL)animated {
@@ -47,7 +57,7 @@
     self.progressView.progress = 0.0;
     [self.spinner startAnimating];
     NSString* localTransitZipFileFullPath = [STAN_MARG_GTFSUnarchiver fullPathToDownloadedTransitZippedFile];
-    self.dataDownloader = [[STAN_MARG_DataDownloader alloc] initWithURL:[NSURL URLWithString:MARGUERITE_TRANSIT_DATA_URL] localPath:localTransitZipFileFullPath downloadDelegate:self];
+    self.dataDownloader = [[[STAN_MARG_DataDownloader alloc] initWithURL:[NSURL URLWithString:MARGUERITE_TRANSIT_DATA_URL] localPath:localTransitZipFileFullPath downloadDelegate:self] autorelease];
     [dataDownloader startDownload];
 }
 
@@ -104,7 +114,7 @@
 #pragma mark private methods
 
 - (void) showErrorAlert:(NSString*)errorMsg {
-    UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Error" message:errorMsg delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
+    UIAlertView* alert = [[[UIAlertView alloc] initWithTitle:@"Error" message:errorMsg delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil] autorelease];
     [alert show];
 }
 

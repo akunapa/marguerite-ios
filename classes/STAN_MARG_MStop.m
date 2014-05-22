@@ -14,18 +14,28 @@
 
 @implementation STAN_MARG_MStop
 
+- (void) dealloc {
+    [_location release];
+    [_stopId release];
+    [_stopName release];
+    [_routesString release];
+    [super dealloc];
+}
+
 /*
  Return an MStop object by looking up the given stop_id in the GTFS database.
  */
 - (id) initWithStopId:(NSString *)stop_id
 {
     if (stop_id == nil) {
+        [self release];
         return nil;
     }
     
     if (self = [super init]) {
         STAN_MARG_GTFSDatabase *db = nil;
         if ((db = [STAN_MARG_GTFSDatabase open]) == nil) {
+            [self release];
             return nil;
         }
     
@@ -34,20 +44,21 @@
         FMResultSet *rs = [db executeQuery:query withArgumentsInArray:@[stop_id]];
         
         if ([rs next]) {
-            self.stopId = [rs objectForColumnName:@"stop_id"];
-            self.stopName = [rs objectForColumnName:@"stop_name"];
+            _stopId = [[rs objectForColumnName:@"stop_id"] retain];
+            _stopName = [[rs objectForColumnName:@"stop_name"] retain];
             
             double latitude = [[rs objectForColumnName:@"stop_lat"] doubleValue];
             double longitude = [[rs objectForColumnName:@"stop_lon"] doubleValue];
-            self.location = [[CLLocation alloc] initWithLatitude:latitude longitude:longitude];
+            _location = [[CLLocation alloc] initWithLatitude:latitude longitude:longitude];
             
-            self.routesString = [rs objectForColumnName:@"routes"];
+            _routesString = [[rs objectForColumnName:@"routes"] retain];
             
-            self.milesAway = 0.0;
+            _milesAway = 0.0;
             
         } else {
             [rs close];
             [db close];
+            [self release];
             return nil;
         }
 
@@ -111,15 +122,15 @@
     
     FMResultSet *rs = [db executeQuery:query];
     
-    NSMutableArray *stops = [[NSMutableArray alloc] init];
+    NSMutableArray *stops = [[[NSMutableArray alloc] init] autorelease];
     while ([rs next]) {
-        STAN_MARG_MStop *stop = [[STAN_MARG_MStop alloc] init];
+        STAN_MARG_MStop *stop = [[[STAN_MARG_MStop alloc] init] autorelease];
         stop.stopId = [rs objectForColumnName:@"stop_id"];
         stop.stopName = [rs objectForColumnName:@"stop_name"];
         
         double latitude = [[rs objectForColumnName:@"stop_lat"] doubleValue];
         double longitude = [[rs objectForColumnName:@"stop_lon"] doubleValue];
-        stop.location = [[CLLocation alloc] initWithLatitude:latitude longitude:longitude];
+        stop.location = [[[CLLocation alloc] initWithLatitude:latitude longitude:longitude] autorelease];
         
         stop.routesString = [rs objectForColumnName:@"routes"];
         

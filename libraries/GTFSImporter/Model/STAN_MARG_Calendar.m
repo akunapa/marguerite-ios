@@ -13,24 +13,44 @@
 
 @interface STAN_MARG_Calendar ()
 {
-    FMDatabase *db;
-    NSDateFormatter *dateFormat, *dateFormat2;
 }
+
+@property (nonatomic, retain) FMDatabase *db;
+@property (nonatomic, retain) NSDateFormatter *dateFormat;
+@property (nonatomic, retain) NSDateFormatter *dateFormat2;
+
 
 @end
 
 @implementation STAN_MARG_Calendar
+
+- (void) dealloc {
+    [_endDate release];
+    [_friday release];
+    [_monday release];
+    [_saturday release];
+    [_serviceId release];
+    [_startDate release];
+    [_sunday release];
+    [_thursday release];
+    [_tuesday release];
+    [_wednesday release];
+    [_db release];
+    [_dateFormat release];
+    [_dateFormat2 release];
+    [super dealloc];
+}
 
 - (id)initWithDB:(FMDatabase *)fmdb
 {
     self = [super init];
 	if (self)
 	{
-		db = fmdb;
-        dateFormat = [[NSDateFormatter alloc] init];
-        [dateFormat setDateFormat:@"yyyyMMdd"];
-        dateFormat2 = [[NSDateFormatter alloc] init];
-        [dateFormat2 setDateFormat:@"yyyy-MM-dd"];
+		_db = [fmdb retain];
+        _dateFormat = [[NSDateFormatter alloc] init];
+        [_dateFormat setDateFormat:@"yyyyMMdd"];
+        _dateFormat2 = [[NSDateFormatter alloc] init];
+        [_dateFormat2 setDateFormat:@"yyyy-MM-dd"];
 	}
 	return self;
 }
@@ -39,15 +59,15 @@
 {
 //    NSLog(@"Calendar %@, %@", calendar.start_date, calendar.end_date);
     
-    if (db==nil) {
-        db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
-        if (![db open]) {
+    if (_db==nil) {
+        self.db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
+        if (![_db open]) {
             NSLog(@"Could not open db.");
             return;
         }
     }
     
-    [db executeUpdate:@"INSERT into calendar(end_date, friday, monday, saturday, service_id, start_date, sunday, thursday, tuesday, wednesday) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    [_db executeUpdate:@"INSERT into calendar(end_date, friday, monday, saturday, service_id, start_date, sunday, thursday, tuesday, wednesday) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
      calendar.endDate,
      calendar.friday,
      calendar.monday,
@@ -59,8 +79,8 @@
      calendar.tuesday,
      calendar.wednesday];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
 }
@@ -69,9 +89,9 @@
 
 - (void)cleanupAndCreate
 {
-    if (db==nil) {
-        db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
-        if (![db open]) {
+    if (_db==nil) {
+        self.db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
+        if (![_db open]) {
             NSLog(@"Could not open db.");
             return;
         }
@@ -80,10 +100,10 @@
     //Drop table if it exists
     NSString *drop = @"DROP TABLE IF EXISTS calendar";
     
-    [db executeUpdate:drop];
+    [_db executeUpdate:drop];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
     
@@ -91,11 +111,11 @@
     NSString *create = @"CREATE TABLE 'calendar' ('service_id' varchar(20) DEFAULT NULL,'start_date' date DEFAULT NULL,'end_date' date DEFAULT NULL,'monday' tinyint(1) DEFAULT NULL,'tuesday' tinyint(1) DEFAULT NULL,'wednesday' tinyint(1) DEFAULT NULL,'thursday' tinyint(1) DEFAULT NULL,'friday' tinyint(1) DEFAULT NULL,'saturday' tinyint(1) DEFAULT NULL,'sunday' tinyint(1) DEFAULT NULL)";
     NSString *createIndex = @"CREATE INDEX service_id_calendar ON calendar(service_id)";
     
-    [db executeUpdate:create];
-    [db executeUpdate:createIndex];
+    [_db executeUpdate:create];
+    [_db executeUpdate:createIndex];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
 }
@@ -103,7 +123,7 @@
 - (void)receiveRecord:(NSDictionary *)aRecord
 {
     
-    STAN_MARG_Calendar *calendarRecord = [[STAN_MARG_Calendar alloc] init];
+    STAN_MARG_Calendar *calendarRecord = [[[STAN_MARG_Calendar alloc] init] autorelease];
     calendarRecord.serviceId = aRecord[@"service_id"];
     calendarRecord.sunday = aRecord[@"sunday"];
     calendarRecord.monday = aRecord[@"monday"];
@@ -113,8 +133,8 @@
     calendarRecord.friday = aRecord[@"friday"];
     calendarRecord.saturday = aRecord[@"saturday"];
     //Date format is wrong, so correct it now
-    calendarRecord.startDate = [dateFormat2 stringFromDate:[dateFormat dateFromString:aRecord[@"start_date"]]];
-    calendarRecord.endDate = [dateFormat2 stringFromDate:[dateFormat dateFromString:aRecord[@"end_date"]]];
+    calendarRecord.startDate = [_dateFormat2 stringFromDate:[_dateFormat dateFromString:aRecord[@"start_date"]]];
+    calendarRecord.endDate = [_dateFormat2 stringFromDate:[_dateFormat dateFromString:aRecord[@"end_date"]]];
     
     [self addCalendar:calendarRecord];
 }

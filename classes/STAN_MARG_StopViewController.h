@@ -11,8 +11,8 @@
 
 @interface STAN_MARG_StopViewController : UITableViewController <UITableViewDelegate, UITableViewDataSource>
 
-@property (strong, nonatomic) STAN_MARG_MStop *stop;
+@property (retain, nonatomic) STAN_MARG_MStop *stop;
 @property BOOL isFavoriteStop;
-@property (strong, nonatomic) NSArray *nextBuses;
+@property (retain, nonatomic) NSArray *nextBuses;
 
 @end

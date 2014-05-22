@@ -11,42 +11,54 @@
 
 @interface STAN_MARG_Shape ()
 {
-    FMDatabase *db;
+ 
 }
+
+@property (nonatomic, retain) FMDatabase *db;
 
 @end
 
 @implementation STAN_MARG_Shape
+
+- (void) dealloc {
+    [_shapeId release];
+    [_shapePtLat release];
+    [_shapePtLon release];
+    [_shapePtSequence release];
+    [_shapeDistTraveled release];
+    [_db release];
+    [super dealloc];
+}
 
 - (id)initWithDB:(FMDatabase *)fmdb
 {
     self = [super init];
 	if (self)
 	{
-		db = fmdb;
+		_db = [fmdb retain];
 	}
 	return self;
 }
 
 - (void)addShape:(STAN_MARG_Shape *)shape
 {
-    if (db==nil) {
-        db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
-        if (![db open]) {
+    if (_db==nil) {
+        self.db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
+        if (![_db open]) {
             NSLog(@"Could not open db.");
             return;
         }
     }
     
-    [db executeUpdate:@"INSERT into shape(shape_id,shape_pt_lat,shape_pt_lon,shape_pt_sequence,shape_dist_traveled) values(?, ?, ?, ?, ?)",
+    [_db executeUpdate:@"INSERT into shape(shape_id,shape_pt_lat,shape_pt_lon,shape_pt_sequence,shape_dist_traveled) values(?, ?, ?, ?, ?)",
      shape.shapeId,
      shape.shapePtLat,
      shape.shapePtLon,
      shape.shapePtSequence,
      shape.shapeDistTraveled];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
     
@@ -54,9 +66,9 @@
 
 - (void)cleanupAndCreate
 {
-    if (db==nil) {
-        db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
-        if (![db open]) {
+    if (_db==nil) {
+        self.db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
+        if (![_db open]) {
             NSLog(@"Could not open db.");
             return;
         }
@@ -65,10 +77,10 @@
     //Drop table if it exists
     NSString *dropShape = @"DROP TABLE IF EXISTS shape";
     
-    [db executeUpdate:dropShape];
+    [_db executeUpdate:dropShape];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
     
@@ -77,11 +89,11 @@
     
     NSString *createIndex = @"CREATE INDEX shape_id_shape ON shape(shape_id)";
     
-    [db executeUpdate:createShape];
-    [db executeUpdate:createIndex];
+    [_db executeUpdate:createShape];
+    [_db executeUpdate:createIndex];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
 }
@@ -89,7 +101,7 @@
 - (void)receiveRecord:(NSDictionary *)aRecord
 {
     
-    STAN_MARG_Shape *shapeRecord = [[STAN_MARG_Shape alloc] init];
+    STAN_MARG_Shape *shapeRecord = [[[STAN_MARG_Shape alloc] init] autorelease];
     shapeRecord.shapeId = aRecord[@"shape_id"];
     shapeRecord.shapePtLat = aRecord[@"shape_pt_lat"];
     shapeRecord.shapePtLon = aRecord[@"shape_pt_lon"];

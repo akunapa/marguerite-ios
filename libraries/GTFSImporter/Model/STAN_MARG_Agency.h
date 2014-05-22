@@ -12,12 +12,12 @@
 
 @interface STAN_MARG_Agency : NSObject
 
-@property (nonatomic, strong) NSString * agencyId;
-@property (nonatomic, strong) NSString * agencyName;
-@property (nonatomic, strong) NSString * agencyUrl;
-@property (nonatomic, strong) NSString * agencyTimezone;
-@property (nonatomic, strong) NSString * agencyLang;
-@property (nonatomic, strong) NSString * agencyPhone;
+@property (nonatomic, retain) NSString * agencyId;
+@property (nonatomic, retain) NSString * agencyName;
+@property (nonatomic, retain) NSString * agencyUrl;
+@property (nonatomic, retain) NSString * agencyTimezone;
+@property (nonatomic, retain) NSString * agencyLang;
+@property (nonatomic, retain) NSString * agencyPhone;
 
 
 - (void)addAgency:(STAN_MARG_Agency *)agency;

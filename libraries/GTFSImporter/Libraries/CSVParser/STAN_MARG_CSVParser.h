@@ -23,16 +23,17 @@
 
 @interface STAN_MARG_CSVParser : NSObject
 {
-	NSString *csvString;
-	NSString *separator;
-	NSScanner *scanner;
-	BOOL hasHeader;
-	NSMutableArray *fieldNames;
-	id receiver;
-	SEL receiverSelector;
-	NSCharacterSet *endTextCharacterSet;
-	BOOL separatorIsSingleChar;
 }
+
+@property (nonatomic, retain) NSString *csvString;
+@property (nonatomic, retain) NSString *separator;
+@property (nonatomic, retain) NSScanner *scanner;
+@property (nonatomic, assign) BOOL hasHeader;
+@property (nonatomic, retain) NSMutableArray *fieldNames;
+@property (nonatomic, retain) id receiver;
+@property (nonatomic, assign) SEL receiverSelector;
+@property (nonatomic, retain) NSCharacterSet *endTextCharacterSet;
+@property (nonatomic, assign) BOOL separatorIsSingleChar;
 
 - (id)initWithString:(NSString *)aCSVString
     separator:(NSString *)aSeparatorString

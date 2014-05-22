@@ -11,12 +11,12 @@
 
 @interface STAN_MARG_FareAttributes : NSObject
 
-@property (nonatomic, strong) NSString * currencyType;
-@property (nonatomic, strong) NSString * fareId;
-@property (nonatomic, strong) NSNumber * paymentMethod;
-@property (nonatomic, strong) NSNumber * price;
-@property (nonatomic, strong) NSNumber * transferDuration;
-@property (nonatomic, strong) NSNumber * transfers;
+@property (nonatomic, retain) NSString * currencyType;
+@property (nonatomic, retain) NSString * fareId;
+@property (nonatomic, retain) NSNumber * paymentMethod;
+@property (nonatomic, retain) NSNumber * price;
+@property (nonatomic, retain) NSNumber * transferDuration;
+@property (nonatomic, retain) NSNumber * transfers;
 
 - (void)addFareAttributesObject:(STAN_MARG_FareAttributes *)value;
 - (id)initWithDB:(FMDatabase *)fmdb;

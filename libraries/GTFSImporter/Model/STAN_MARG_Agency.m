@@ -13,34 +13,47 @@
 
 @interface STAN_MARG_Agency ()
 {
-    FMDatabase *db;
+
 }
+
+@property (nonatomic, retain) FMDatabase *db;
 
 @end
 
 @implementation STAN_MARG_Agency
+
+- (void) dealloc {
+    [_agencyId release];
+    [_agencyName release];
+    [_agencyUrl release];
+    [_agencyTimezone release];
+    [_agencyLang release];
+    [_agencyPhone release];
+    [_db release];
+    [super dealloc];
+}
 
 - (id)initWithDB:(FMDatabase *)fmdb
 {
     self = [super init];
 	if (self)
 	{
-		db = fmdb;
+		_db = [fmdb retain];
 	}
 	return self;
 }
 
 - (void)addAgency:(STAN_MARG_Agency *)agency
 {
-    if (db==nil) {
-        db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
-        if (![db open]) {
+    if (_db==nil) {
+        self.db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
+        if (![_db open]) {
             NSLog(@"Could not open db.");
             return;
         }
     }
     
-    [db executeUpdate:@"INSERT into agency(agency_id, agency_name, agency_url, agency_timezone, agency_lang, agency_phone) values(?, ?, ?, ?, ?, ?)",
+    [_db executeUpdate:@"INSERT into agency(agency_id, agency_name, agency_url, agency_timezone, agency_lang, agency_phone) values(?, ?, ?, ?, ?, ?)",
                         agency.agencyId,
                         agency.agencyName,
                         agency.agencyUrl,
@@ -48,8 +61,8 @@
                         agency.agencyLang,
                         agency.agencyPhone];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
     
@@ -57,9 +70,9 @@
 
 - (void)cleanupAndCreate
 {
-    if (db==nil) {
-        db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
-        if (![db open]) {
+    if (_db==nil) {
+        self.db = [FMDatabase databaseWithPath:[STAN_MARG_GTFSDatabase getNewAutoUpdateDatabaseBuildPath]];
+        if (![_db open]) {
             NSLog(@"Could not open db.");
             return;
         }
@@ -68,20 +81,20 @@
     //Drop table if it exists
     NSString *dropAgency = @"DROP TABLE IF EXISTS agency";
     
-    [db executeUpdate:dropAgency];
+    [_db executeUpdate:dropAgency];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
     
     //Create table
     NSString *createAgency = @"CREATE TABLE 'agency' ('agency_url' varchar(255) DEFAULT NULL, 'agency_name' varchar(255) DEFAULT NULL, 'agency_timezone' varchar(50) DEFAULT NULL, 'agency_lang' char(2) DEFAULT NULL, 'agency_phone' varchar(50) DEFAULT NULL, 'agency_id' varchar(50) DEFAULT NULL)";
     
-    [db executeUpdate:createAgency];
+    [_db executeUpdate:createAgency];
     
-    if ([db hadError]) {
-        NSLog(@"Err %d: %@", [db lastErrorCode], [db lastErrorMessage]);
+    if ([_db hadError]) {
+        NSLog(@"Err %d: %@", [_db lastErrorCode], [_db lastErrorMessage]);
         return;
     }
 }
@@ -89,7 +102,7 @@
 - (void)receiveRecord:(NSDictionary *)aRecord
 {
     
-    STAN_MARG_Agency *agencyRecord = [[STAN_MARG_Agency alloc] init];
+    STAN_MARG_Agency *agencyRecord = [[[STAN_MARG_Agency alloc] init] autorelease];
     agencyRecord.agencyId = aRecord[@"agency_id"];
     agencyRecord.agencyName = aRecord[@"agency_name"];
     agencyRecord.agencyUrl = aRecord[@"agency_url"];

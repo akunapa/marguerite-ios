@@ -11,11 +11,11 @@
 
 @interface STAN_MARG_FareRules : NSObject
 
-@property (nonatomic, strong) NSString *fareId;
-@property (nonatomic, strong) NSString *routeId;
-@property (nonatomic, strong) NSString *originId;
-@property (nonatomic, strong) NSString *destinationId;
-@property (nonatomic, strong) NSString *containsId;
+@property (nonatomic, retain) NSString *fareId;
+@property (nonatomic, retain) NSString *routeId;
+@property (nonatomic, retain) NSString *originId;
+@property (nonatomic, retain) NSString *destinationId;
+@property (nonatomic, retain) NSString *containsId;
 
 - (void)addFareRules:(STAN_MARG_FareRules *)value;
 - (id)initWithDB:(FMDatabase *)fmdb;

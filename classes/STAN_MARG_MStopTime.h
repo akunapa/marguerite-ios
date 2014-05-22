@@ -10,10 +10,10 @@
 
 @interface STAN_MARG_MStopTime : NSObject
 
-@property (nonatomic, strong) NSDate * departureTime;
-@property (nonatomic, strong) NSString * routeLongName;
-@property (nonatomic, strong) UIColor * routeColor;
-@property (nonatomic, strong) UIColor * routeTextColor;
-@property (nonatomic, strong) NSString * tripId;
+@property (nonatomic, retain) NSDate * departureTime;
+@property (nonatomic, retain) NSString * routeLongName;
+@property (nonatomic, retain) UIColor * routeColor;
+@property (nonatomic, retain) UIColor * routeTextColor;
+@property (nonatomic, retain) NSString * tripId;
 
 @end

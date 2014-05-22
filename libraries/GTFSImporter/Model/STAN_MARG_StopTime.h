@@ -11,13 +11,13 @@
 
 @interface STAN_MARG_StopTime : NSObject
 
-@property (nonatomic, strong) NSString *arrivalTime;
-@property (nonatomic, strong) NSString *departureTime;
-@property (nonatomic, strong) NSNumber *stopSequence;
-@property (nonatomic, strong) NSString *tripId;
-@property (nonatomic, strong) NSString *stopId;
-@property (nonatomic, strong) NSNumber *isTimepoint;
-@property (nonatomic, strong) NSNumber *pickupType;
+@property (nonatomic, retain) NSString *arrivalTime;
+@property (nonatomic, retain) NSString *departureTime;
+@property (nonatomic, retain) NSNumber *stopSequence;
+@property (nonatomic, retain) NSString *tripId;
+@property (nonatomic, retain) NSString *stopId;
+@property (nonatomic, retain) NSNumber *isTimepoint;
+@property (nonatomic, retain) NSNumber *pickupType;
 
 - (void)addStopTime:(STAN_MARG_StopTime *)stopTime;
 - (id)initWithDB:(FMDatabase *)fmdb;
